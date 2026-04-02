@@ -1,0 +1,43 @@
+/* ====================== NAVBAR - Primer Commit ====================== */
+
+.navbar {
+    background-color: #0a1428 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Logo */
+.navbar-brand {
+    font-size: 1.8rem;
+}
+
+/* Enlaces del menú */
+.nav-link {
+    color: white !important;
+    transition: color 0.3s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: #f5c400 !important;
+}
+
+/* Botones */
+.btn-outline-light {
+    border-color: white;
+    color: white;
+}
+
+.btn-outline-light:hover {
+    background-color: white;
+    color: #0a1428;
+}
+
+.btn-warning {
+    background-color: #f5c400;
+    border: none;
+}
+
+.btn-warning:hover {
+    background-color: #ffd700;
+    transform: translateY(-2px);
+}
