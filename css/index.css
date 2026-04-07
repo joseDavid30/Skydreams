@@ -178,3 +178,59 @@
     font-size: 0.85rem;
     z-index: 5;
 }
+/* --- ESTILOS SECCIÓN BENEFICIOS --- */
+.bg-dark-blue {
+    background-color: #070d19; /* Un tono un poco más oscuro que el fondo general */
+}
+
+.icon-circle {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(245, 196, 0, 0.1); /* Fondo dorado muy suave */
+    border: 2px solid #f5c400; 
+    color: #f5c400; /* Icono dorado */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.beneficio-item:hover .icon-circle {
+    background-color: #f5c400;
+    color: #070d19;
+    transform: scale(1.1);
+}
+
+/* Efecto de la tarjeta de Cancelación Flexible (la que tiene el cuadro oscuro de fondo) */
+.highlight-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.beneficio-item p {
+    line-height: 1.4;
+    max-width: 200px;
+    margin: 0 auto;
+}
+.icon-circle {
+    width: 80px;      /* Tamaño del círculo */
+    height: 80px;
+    border: 2px solid #f5c400; /* Color dorado del borde */
+    border-radius: 50%;
+    display: flex;             /* Centra el icono horizontalmente */
+    align-items: center;       /* Centra el icono verticalmente */
+    justify-content: center;
+    margin: 0 auto;           /* Centra el círculo en la columna */
+    font-size: 2rem;           /* Tamaño del icono */
+    color: #f5c400;            /* Color del icono */
+    transition: all 0.3s ease;
+}
+
+.icon-circle:hover {
+    background-color: #f5c400;
+    color: #0a1428;
+    transform: translateY(-5px);
+}
