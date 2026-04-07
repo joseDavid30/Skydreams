@@ -121,3 +121,60 @@
     background-color: #f5c400;
     color: #0a1428;
 }
+/* ======================destinos populares- Commit 4   ====================== */
+/* --- ESTILOS DESTINOS POPULARES --- */
+.destinos-populares {
+    background-color: #0a1428; /* Fondo oscuro igual al resto */
+}
+
+.destino-card {
+    height: 400px; /* Altura fija para que todas sean iguales */
+    border: none;
+    transition: transform 0.3s ease;
+}
+
+.destino-card:hover {
+    transform: translateY(-10px);
+}
+
+.destino-card img {
+    object-fit: cover; /* Para que la imagen no se deforme */
+    filter: brightness(0.8); /* Oscurece un poco la imagen para que se lea el texto */
+}
+
+.destino-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, rgba(10, 20, 40, 0.9) 0%, transparent 60%);
+}
+
+.btn-ver-vuelos {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 20px;
+    font-weight: 500;
+    width: fit-content;
+}
+
+.btn-ver-vuelos:hover {
+    background-color: white;
+    color: #0a1428;
+}
+
+.badge-descuento {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #f5c400;
+    color: #0a1428;
+    padding: 8px 15px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    z-index: 5;
+}
