@@ -39,7 +39,29 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
 }
 
+.card-offer {
+    transition: transform 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 0.85rem;
+}
 
+.card-offer:hover {
+    transform: translateY(-5px);
+    border-color: #ffc107 !important;
+}
+
+.card-img-top {
+    height: 120px;
+    object-fit: cover;
+}
+
+.info-stat-box {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    min-width: 200px;
+}
 
 .text-warning { color: #ffc107 !important; }
 .btn-warning { background-color: #ffc107; border: none; color: #000; transition: 0.3s; }
