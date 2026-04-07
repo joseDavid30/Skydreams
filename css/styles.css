@@ -54,3 +54,63 @@ nav a {
     padding: 20px;
     text-align: center;
 }
+.nav-link {
+    transition: color 0.25s ease;
+}
+
+.nav-link:hover {
+    color: #f4c542 !important;
+}
+
+.nav-link.active {
+    color: #f4c542 !important;
+}
+
+.ofertas-container {
+    max-width: 1500px;
+    margin: auto;
+    padding: 40px 20px; /* espacio arriba/abajo y lados */
+}
+
+/* Scroll horizontal */
+.ofertas-scroll {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 20px; /* NO lo aumentes más */
+}
+.card-oferta:first-child {
+    margin-left: 30px;
+}
+
+.card-oferta:last-child {
+    margin-right: 30px;
+}
+/* Ocultar scrollbar */
+.ofertas-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.ofertas-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Tarjetas */
+.card-oferta {
+    min-width:250px;
+    flex: 0 0 auto;
+    margin: 10px 0; 
+}
+
+/* Imágenes */
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* Evita desbordes raros */
+body {
+    overflow-x: hidden;
+}
