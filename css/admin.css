@@ -1,10 +1,51 @@
 /* =============================================
-   ADMIN DASHBOARD
+   1. VARIABLES Y CONFIGURACIÓN GLOBAL
    ============================================= */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #f8f9fc;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* Necesario para el scroll independiente */
+}
 
-/* Sidebar */
+h4 {
+    font-weight: 700;
+    letter-spacing: -0.8px;
+    font-size: 1.30rem;
+    color: #1f2937;
+}
 
+small {
+    font-weight: 500;
+    font-size: 0.875rem;
+    letter-spacing: -0.2px;
+    color: #64748b;
+}
+
+/* Colores Corporativos Reutilizables */
+.logo-bg, 
+.camp-bg, 
+.user-bg {
+    background-color: #de7b0aea !important;
+}
+
+.text-warning {
+    color: #de7b0aea !important;
+}
+
+.bg-warning-subtle {
+    background-color: #fffbeb !important;
+}
+
+/* =============================================
+   2. SIDEBAR (MENÚ LATERAL)
+   ============================================= */
 .sidebar {
+    width: 280px;
+    height: 100vh;
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
     background: #ffffff;
 }
@@ -14,35 +55,32 @@
     scrollbar-color: #fbbf24 #f8f9fa;
 }
 
+.menu-item, 
+.active-menu {
+    text-decoration: none !important;
+    transition: all 0.25s ease;
+    border-radius: 12px;
+}
+
 .active-menu {
     background-color: #fffbeb !important;
     color: #372a1f !important;
-    border: 1px solid #fee685 !important;     
-    border-radius: 12px;
-    
-}
-
-.menu-item {
-    transition: all 0.25s ease;
-    border-radius: 12px;
+    border: 1px solid #fee685 !important;
 }
 
 .menu-item:hover {
     background-color: #f8f9fa;
 }
 
-.menu-item,
-.active-menu {
-    text-decoration: none !important;
-}
-
-.menu-item i,
+.menu-item i, 
 .active-menu i {
     color: #374151;
     width: 24px;
 }
-/*nadvar top*/
 
+/* =============================================
+   3. NAVBAR (TOPBAR)
+   ============================================= */
 .search-input {
     height: 52px;
     border-radius: 9999px !important;
@@ -56,45 +94,117 @@
 }
 
 .avatar {
+    width: 46px;
+    height: 46px;
     font-size: 22px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* =============================================
+   4. PANEL DE CONTENIDO (DASHBOARD)
+   ============================================= */
 #main-content {
     background-color: #f8f9fa;
+    height: 100%;
+    overflow-y: auto;
 }
 
-body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-weight: 400;
-    letter-spacing: -0.01em;
+/* Tarjetas de Estadísticas */
+.stat-card {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: default;
 }
 
-h4 {
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card p {
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card h2 {
+    font-size: 2rem;
     font-weight: 700;
-    letter-spacing: -0.8px;
-    font-size: 1.30rem;
-    color: #1f2937;
 }
 
+/* Iconos de las Tarjetas */
+.icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-small {
-    font-weight: 500;
+/* =============================================
+   5. DESTINOS Y ACTIVIDAD (SECCIÓN INFERIOR)
+   ============================================= */
+
+/* Barras de Progreso - Destinos */
+.destino-nombre {
+    width: 80px;
     font-size: 0.875rem;
-    letter-spacing: -0.2px;
     color: #64748b;
 }
 
-
-.logo-bg {
-    background-color: #de7b0aea !important; 
-    
+.destino-valor {
+    width: 35px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.875rem;
 }
 
-.camp-bg {
-    background-color: #de7b0aea !important;
+.destinos-list .progress {
+    height: 10px;
+    background-color: #f1f5f9;
+    border-radius: 50px;
 }
 
-.user-bg {
-     background-color: #de7b0aea !important;
+.destinos-list .progress-bar {
+    background-color: #de7b0a !important;
+    border-radius: 50px;
+}
+
+/* Lista de Actividad */
+.actividad-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.icon-positive, 
+.icon-info {
+    background-color: #fffbeb;
+    color: #de7b0a;
+}
+
+.icon-negative {
+    background-color: #f8f9fa;
+    color: #64748b;
+}
+
+.actividad-texto p {
+    font-size: 0.875rem;
+    color: #64748b;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.actividad-texto .tiempo {
+    font-size: 0.75rem;
+    color: #94a3b8;
 }
