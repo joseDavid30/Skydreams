@@ -208,3 +208,122 @@ small {
     font-size: 0.75rem;
     color: #94a3b8;
 }
+
+/* =============================================
+   ESTILOS PARA EL MÓDULO: GESTIÓN DE VUELOS
+   ============================================= */
+
+/* Botón Principal (Naranja) */
+.btn-brand {
+    background-color: #de7b0a !important; 
+    color: #ffffff !important;
+    border: none;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-brand:hover {
+    background-color: #c06908 !important;
+}
+
+/* Dropdown personalizado */
+.custom-dropdown-btn::after {
+    margin-left: auto;
+    color: #9ca3af;
+}
+
+.dropdown-item {
+    color: #374151;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f3f4f6;
+}
+
+/* Badges de Estado */
+.badge-estado {
+    padding: 0.5em 1em;
+    border-radius: 50rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.badge-yellow {
+    background-color: #fef3c7; 
+    color: #92400e; 
+    border: 1px solid #fcd34d; 
+}
+
+.badge-grey {
+    background-color: #f1f5f9; 
+    color: #334155; 
+    border: 1px solid #cbd5e1; 
+}
+
+/* Tabla personalizada */
+.custom-table {
+    --bs-table-bg: transparent;
+}
+
+.custom-table th {
+    color: #64748b;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.custom-table tbody tr {
+    transition: background-color 0.15s ease-in-out;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.custom-table td {
+    vertical-align: middle;
+}
+
+/* Botones de acción (iconos) */
+.action-buttons .btn-icon {
+    color: #64748b;
+    background: transparent;
+    border: none;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+}
+
+.action-buttons .btn-icon:hover {
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+
+/* Inputs del Modal */
+.custom-input {
+    border-radius: 8px;
+}
+
+.custom-input:focus {
+    box-shadow: none !important;
+    border: 1px solid #de7b0a !important;
+    background-color: #ffffff !important;
+}
+
+/* Estado de input con foco simulado (como en la imagen del modal) */
+.input-focused {
+    border: 2px solid #cbd5e1 !important;
+    background-color: #f8fafc !important;
+}
+
+/* Ajustes adicionales para Modal */
+.btn-outline-dark {
+    border-color: #e2e8f0;
+    color: #0f172a;
+}
+.btn-outline-dark:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
