@@ -70,7 +70,6 @@
             transform: translateY(-3px);
         }
         /* ====================== CALENDARIO - Corrección final ====================== */
-
 .search-box input[type="date"] {
     font-size: 0.75rem !important;     /* letra más pequeña para que quepa el año completo */
     padding: 0 10px !important;
