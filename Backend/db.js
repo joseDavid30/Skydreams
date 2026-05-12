@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 
 // Configuración de la conexión a PostgreSQL
-// ¡RECUERDA CAMBIAR 'tu_contraseña' POR LA CONTRASEÑA QUE PUSISTE AL INSTALAR POSTGRES!
+
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
