@@ -1,96 +1,180 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkiDreams | Tu viaje, nuestra pasión</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/index.css">
 </head>
+
 <body>
 
     <!-- NAVBAR commit 1-->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <div class="bg-warning text-dark rounded-3 p-2 me-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                    <i class="bi bi-airplane-fill fs-3"></i>
+
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+
+                <div class="bg-warning text-dark rounded-3 d-flex align-items-center justify-content-center me-3"
+                    style="width: 50px; height: 50px;">
+
+                    <i class="bi bi-airplane" style="font-size: 2.1rem;"></i>
+
                 </div>
-                <span class="fw-bold fs-3">SkiDreams</span>
+
+                <div class="d-flex flex-column justify-content-center" style="line-height: 1.1;">
+
+                    <span class="fw-bold fs-4 text-white">
+                        SkyDreams Travel
+                    </span>
+
+                    <small class="text-warning fw-medium" style="font-size: 0.95rem;">
+                        Tu viaje, nuestra pasión
+                    </small>
+
+                </div>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-label="Abrir menú de navegación">
+
                 <span class="navbar-toggler-icon"></span>
+
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link active fw-semibold px-4" href="#">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link fw-semibold px-4" href="pages/reservas.html">Reservas</a></li>
-                    <li class="nav-item"><a class="nav-link fw-semibold px-4" href="pages/user/ofertas.html">Ofertas</a></li>
-                    <li class="nav-item"><a class="nav-link fw-semibold px-4" href="#">Club VIP</a></li>
-                    <li class="nav-item"><a class="nav-link fw-semibold px-4" href="#">Información</a></li>
+
+                <ul class="navbar-nav mx-auto justify-content-center">
+
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" href="index.html" style="white-space: nowrap;">
+
+                            <i class="bi bi-house-door me-1"></i>
+                            Inicio
+
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="pages/reservas.html" style="white-space: nowrap;">
+
+                            <i class="bi bi-calendar me-1"></i>
+                            Reservas
+
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="pages/user/ofertas.html" style="white-space: nowrap;">
+
+                            <i class="bi bi-tag me-1"></i>
+                            Ofertas
+
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="pages/club-vip.html" style="white-space: nowrap;">
+
+                            <i class="bi bi-gem me-2"></i>
+                            Club VIP
+
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="pages/info.html" style="white-space: nowrap;">
+
+                            <i class="bi bi-info-circle me-1"></i>
+                            Información
+
+                        </a>
+                    </li>
+
                 </ul>
 
-                <div class="d-flex align-items-center gap-2">
-                    <a href="#" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">Iniciar Sesión</a>
-                    <a href="#" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark">Registrarse</a>
+                <div class="d-flex ms-auto align-items-center flex-shrink-0 gap-2">
+
+                    <a href="pages/login.html" class="btn btn-outline-light rounded-pill px-3 d-flex align-items-center"
+                        style="white-space: nowrap;">
+
+                        Iniciar Sesión
+
+                    </a>
+
+                    <a href="pages/registro.html"
+                        class="btn btn-warning text-dark rounded-pill px-3 fw-semibold d-flex align-items-center"
+                        style="white-space: nowrap;">
+
+                        Registrarse
+
+                    </a>
+
                 </div>
             </div>
         </div>
     </nav>
-
+    
     <!-- HERO + BUSCADOR commit 2-->
     <section class="hero">
         <div class="container">
             <div class="row justify-content-center text-center mb-5">
                 <div class="col-lg-10">
-                    <h1 class="hero-title mb-3">Bienvenido a SkiDreams <i class="bi bi-airplane-fill text-warning"></i></h1>
-                    <p class="fs-4 mb-5">Una agencia de vuelos que te llevará a conocer el mundo de manera segura y al mejor precio.</p>
+                    <h1 class="hero-title mb-3">Bienvenido a SkiDreams <i class="bi bi-airplane-fill text-warning"></i>
+                    </h1>
+                    <p class="fs-4 mb-5">Una agencia de vuelos que te llevará a conocer el mundo de manera segura y al
+                        mejor precio.</p>
                 </div>
             </div>
 
             <div class="row justify-content-center">
                 <div class="col-lg-11">
                     <div class="search-box mx-auto">
-                        <div class="row g-3 align-items-end">
+                        <div class="row g-1 align-items-end">
                             <div class="col-md-2">
-                                <label class="text-white-50 small mb-1">Origen</label>
+                                <label for="origen" class="text-white-50 small mb-1">Origen</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-0 text-warning"><i class="bi bi-geo-alt-fill"></i></span>
-                                    <input type="text" class="form-control" placeholder="Ciudad" value="Ciudad">
+                                    <span class="input-group-text bg-transparent border-0 text-warning"><i
+                                            class="bi bi-geo-alt-fill"></i></span>
+                                    <input type="text" id="origen" class="form-control" placeholder="Ciudad">
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <label class="text-white-50 small mb-1">Destino</label>
+                                <label for="destino" class="text-white-50 small mb-1">Destino</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-0 text-warning"><i class="bi bi-geo-alt-fill"></i></span>
-                                    <input type="text" class="form-control" placeholder="Ciudad" value="Ciudad">
+                                    <span class="input-group-text bg-transparent border-0 text-warning"><i
+                                            class="bi bi-geo-alt-fill"></i></span>
+                                    <input type="text" id="destino" class="form-control" placeholder="Ciudad">
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <label class="text-white-50 small mb-1">Fecha de ida</label>
+                                <label for="fecha-ida" class="text-white-50 small mb-1">Fecha de ida</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-0 text-warning"><i class="bi bi-calendar"></i></span>
-                                    <input type="date" class="form-control" value="2026-04-15">
+                                    <span class="input-group-text bg-transparent border-0 text-warning"><i
+                                            class="bi bi-calendar"></i></span>
+                                    <input type="date" id="fecha-ida" class="form-control" value="2026-04-15">
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <label class="text-white-50 small mb-1">Fecha regreso</label>
+                                <label for="fecha-regreso" class="text-white-50 small mb-1">Fecha regreso</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-0 text-warning"><i class="bi bi-calendar"></i></span>
-                                    <input type="date" class="form-control" value="2026-04-22">
+                                    <span class="input-group-text bg-transparent border-0 text-warning"><i
+                                            class="bi bi-calendar"></i></span>
+                                    <input type="date" id="fecha-regreso" class="form-control" value="2026-04-22">
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <label class="text-white-50 small mb-1">Pasajeros</label>
+                                <label for="pasajeros" class="text-white-50 small mb-1">Pasajeros</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-0 text-warning"><i class="bi bi-people"></i></span>
-                                    <select class="form-select">
+                                    <span class="input-group-text bg-transparent border-0 text-warning"><i
+                                            class="bi bi-people"></i></span>
+                                    <select id="pasajeros" class="form-select">
                                         <option>1 Pasajero</option>
                                         <option>2 Pasajeros</option>
                                         <option>3 Pasajeros</option>
@@ -98,8 +182,12 @@
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <button onclick="buscarVuelo()" class="btn btn-buscar w-100 d-flex align-items-center justify-content-center gap-2">
-                                    <i class="bi bi-search"></i> Buscar vuelo
+                                <button onclick="buscarVuelo()" aria-label="Buscar vuelos disponibles"
+                                    class="btn btn-buscar w-100 d-flex align-items-center justify-content-center gap-2">
+
+                                    <i class="bi bi-search"></i>
+                                    Buscar vuelo
+
                                 </button>
                             </div>
                         </div>
@@ -107,218 +195,235 @@
                 </div>
             </div>
         </div>
-</section>
-   <!---Ofertas commit 3 --->
-<section class="ofertas py-5 bg-dark text-white">
-    <div class="container">
+    </section>
+    <!---Ofertas commit 3 --->
+    <section class="ofertas py-5 bg-dark text-white">
+        <div class="container">
 
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <i class="bi bi-tag-fill fs-4 text-warning"></i>
-            <h5 class="text-warning mb-0 fw-bold">OFERTAS EXCLUSIVAS</h5>
-        </div>
-
-        <h2 class="display-4 fw-bold mb-3">
-            Promociones por tiempo <span class="text-warning">limitado</span>
-        </h2>
-        
-        <p class="lead mb-4">
-            Aprovecha nuestras ofertas premium y viaja a los destinos más exclusivos con tarifas especiales.
-        </p>
-
-        <div class="text-end mb-5">
-            <a href="#" class="text-warning fw-semibold text-decoration-none">
-                Ver todas las ofertas <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-
-        <div class="row g-4">
-            <!-- Tarjeta 1 -->
-<div class="col-lg-3 col-md-6">
-    <div class="card card-oferta bg-dark text-white border-0 h-100 overflow-hidden position-relative">
-        <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-4.0.3&auto=format&fit=crop&q=80" class="card-img-top" alt="París" style="height: 220px; object-fit: cover;">
-        <span class="discount-badge">20% OFF</span>
-        <div class="card-body">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <i class="bi bi-airplane text-warning"></i>
-                <small>Vuelo + Hotel</small>
-            </div>
-            <h5 class="card-title">París, Francia</h5>
-            <p class="small text-white-50 mb-3">Válido por 48 hrs</p>
-            <del class="text-white-50">$3.500.000</del><br>
-            <span class="fs-4 fw-bold text-warning">$2.800.000</span>
-             <a href="#" class="btn btn-outline-warning w-100 mt-4">Reserva Ahora</a>
-        </div>
-    </div>
-</div>
-
-            <!-- Tarjeta 2 -->
-            <div class="col-lg-3 col-md-6">
-                <div class="card card-oferta bg-dark text-white border-0 h-100 overflow-hidden position-relative">
-                    <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?ixlib=rb-4.0.3&auto=format&fit=crop&q=80" class="card-img-top" alt="Dubai" style="height: 220px; object-fit: cover;">
-                    <span class="discount-badge">30% OFF</span>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-airplane text-warning"></i><small>Primera Clase</small></div>
-                        <h5>Dubai, EAU</h5>
-                        <p class="small text-white-50 mb-3">Válido por 24 hrs</p>
-                        <del class="text-white-50">$6.000.000</del><br>
-                        <span class="fs-4 fw-bold text-warning">$4.200.000</span>
-                        <a href="#" class="btn btn-outline-warning w-100 mt-4">Reserva Ahora</a>
-                    </div>
-                </div>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-tag-fill fs-4 text-warning"></i>
+                <h5 class="text-warning mb-0 fw-bold">OFERTAS EXCLUSIVAS</h5>
             </div>
 
-            <!-- Tarjeta 3 -->
-            <div class="col-lg-3 col-md-6">
-                <div class="card card-oferta bg-dark text-white border-0 h-100 overflow-hidden position-relative">
-                    <img src="https://www.mochilerosviajeros.com/wp-content/uploads/2021/04/MALDIVAS.jpg" class="card-img-top" alt="Maldivas" style="height: 220px; object-fit: cover;">
-                    <span class="discount-badge">20% OFF</span>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-airplane text-warning"></i><small>Resort de Lujo</small></div>
-                        <h5>Maldivas</h5>
-                        <p class="small text-white-50 mb-3">Válido por 3 días</p>
-                        <del class="text-white-50">$8.500.000</del><br>
-                        <span class="fs-4 fw-bold text-warning">$6.800.000</span>
-                        <a href="#" class="btn btn-outline-warning w-100 mt-4">Reserva Ahora</a>
-                    </div>
-                </div>
+            <h2 class="display-4 fw-bold mb-3">
+                Promociones por tiempo <span class="text-warning">limitado</span>
+            </h2>
+
+            <p class="lead mb-4">
+                Aprovecha nuestras ofertas premium y viaja a los destinos más exclusivos con tarifas especiales.
+            </p>
+
+            <div class="text-end mb-5">
+                <a href="#" class="text-warning fw-semibold text-decoration-none">
+                    Ver todas las ofertas <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
 
-            <!-- Tarjeta 4 -->
-            <div class="col-lg-3 col-md-6">
-                <div class="card card-oferta bg-dark text-white border-0 h-100 overflow-hidden position-relative">
-                    <img src="https://wallpapercave.com/wp/wp8438159.jpg" class="card-img-top" alt="Tokio" style="height: 220px; object-fit: cover;">
-                    <span class="discount-badge">25% OFF</span>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-airplane text-warning"></i><small>Vuelo Directo</small></div>
-                        <h5>Tokio, Japón</h5>
-                        <p class="small text-white-50 mb-3">Válido hoy</p>
-                        <del class="text-white-50">$5.200.000</del><br>
-                        <span class="fs-4 fw-bold text-warning">$3.900.000</span>
-                        <a href="#" class="btn btn-outline-warning w-100 mt-4">Reserva Ahora</a>
+            <div class="row g-4">
+                <!-- Tarjeta 1 -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card card-oferta bg-dark text-white border-0 h-100 overflow-hidden position-relative">
+                        <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-4.0.3&auto=format&fit=crop&q=80"
+                            class="card-img-top" alt="París" style="height: 220px; object-fit: cover;">
+                        <span class="discount-badge">20% OFF</span>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-airplane text-warning"></i>
+                                <small>Vuelo + Hotel</small>
+                            </div>
+                            <h5 class="card-title">París, Francia</h5>
+                            <p class="small text-white-50 mb-3">Válido por 48 hrs</p>
+                            <del class="text-white-50">$3.500.000</del><br>
+                            <span class="fs-4 fw-bold text-warning">$2.800.000</span>
+                            <a href="#" class="btn btn-outline-warning w-100 mt-4">Reserva Ahora</a>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-        </div>
-    </div>
-</section>
-<section>
-<div>
-    <!---Destinos pupulares commit 4 --->
-    <section class="destinos-populares py-5">
-    <div class="container text-center">
-        <h2 class="display-4 fw-bold text-white mb-5">
-            Destinos <span class="text-warning border-bottom border-warning border-3">Populares</span>
-        </h2>
-
-        <div class="row g-4">
-            <div class="col-lg-4 col-md-6">
-                <div class="destino-card rounded-4 overflow-hidden position-relative">
-                    <img src="https://www.civitatis.com/blog/wp-content/uploads/2023/02/playa-bocagrande-cartagena-indias.jpg" class="img-fluid w-100 h-100" alt="Cartagena">
-                    <div class="destino-overlay p-4 d-flex flex-column justify-content-end text-start">
-                        <h3 class="fw-bold text-white mb-0">Cartagena</h3>
-                        <p class="text-warning mb-3">desde $120.000</p>
-                        <a href="#" class="btn btn-ver-vuelos rounded-pill">Ver vuelos <i class="bi bi-arrow-right"></i></a>
+                <!-- Tarjeta 2 -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card card-oferta bg-dark text-white border-0 h-100 overflow-hidden position-relative">
+                        <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?ixlib=rb-4.0.3&auto=format&fit=crop&q=80"
+                            class="card-img-top" alt="Dubai" style="height: 220px; object-fit: cover;">
+                        <span class="discount-badge">30% OFF</span>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-2 mb-2"><i
+                                    class="bi bi-airplane text-warning"></i><small>Primera Clase</small></div>
+                            <h5>Dubai, EAU</h5>
+                            <p class="small text-white-50 mb-3">Válido por 24 hrs</p>
+                            <del class="text-white-50">$6.000.000</del><br>
+                            <span class="fs-4 fw-bold text-warning">$4.200.000</span>
+                            <a href="#" class="btn btn-outline-warning w-100 mt-4">Reserva Ahora</a>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-4 col-md-6">
-                <div class="destino-card rounded-4 overflow-hidden position-relative">
-                    <img src="https://elviajerofeliz.com/wp-content/uploads/2017/08/Qu%C3%A9-ver-en-Nueva-York-5-cosas-que-no-te-puedes-perder.gif" class="img-fluid w-100 h-100" alt="Nueva York">
-                    <div class="destino-overlay p-4 d-flex flex-column justify-content-end text-start">
-                        <h3 class="fw-bold text-white mb-0">Nueva York</h3>
-                        <p class="text-warning mb-3">desde $1.200.000</p>
-                        <a href="#" class="btn btn-ver-vuelos rounded-pill">Ver vuelos <i class="bi bi-arrow-right"></i></a>
+                <!-- Tarjeta 3 -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card card-oferta bg-dark text-white border-0 h-100 overflow-hidden position-relative">
+                        <img src="https://www.mochilerosviajeros.com/wp-content/uploads/2021/04/MALDIVAS.jpg"
+                            class="card-img-top" alt="Maldivas" style="height: 220px; object-fit: cover;">
+                        <span class="discount-badge">20% OFF</span>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-2 mb-2"><i
+                                    class="bi bi-airplane text-warning"></i><small>Resort de Lujo</small></div>
+                            <h5>Maldivas</h5>
+                            <p class="small text-white-50 mb-3">Válido por 3 días</p>
+                            <del class="text-white-50">$8.500.000</del><br>
+                            <span class="fs-4 fw-bold text-warning">$6.800.000</span>
+                            <a href="#" class="btn btn-outline-warning w-100 mt-4">Reserva Ahora</a>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-4 col-md-6">
-                <div class="destino-card rounded-4 overflow-hidden position-relative">
-                    <span class="badge-descuento">30% de descuento</span>
-                    <img src="https://blogdeviagemeturismo.com.br/wp-content/uploads/2024/09/Ilha-de-San-Andres-Colombia.jpg" class="img-fluid w-100 h-100" alt="San Andrés">
-                    <div class="destino-overlay p-4 d-flex flex-column justify-content-end text-start">
-                        <h3 class="fw-bold text-white mb-3">San Andrés</h3>
-                        <a href="#" class="btn btn-ver-vuelos rounded-pill">Ver vuelos <i class="bi bi-arrow-right"></i></a>
+                <!-- Tarjeta 4 -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card card-oferta bg-dark text-white border-0 h-100 overflow-hidden position-relative">
+                        <img src="https://wallpapercave.com/wp/wp8438159.jpg" class="card-img-top" alt="Tokio"
+                            style="height: 220px; object-fit: cover;">
+                        <span class="discount-badge">25% OFF</span>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-2 mb-2"><i
+                                    class="bi bi-airplane text-warning"></i><small>Vuelo Directo</small></div>
+                            <h5>Tokio, Japón</h5>
+                            <p class="small text-white-50 mb-3">Válido hoy</p>
+                            <del class="text-white-50">$5.200.000</del><br>
+                            <span class="fs-4 fw-bold text-warning">$3.900.000</span>
+                            <a href="#" class="btn btn-outline-warning w-100 mt-4">Reserva Ahora</a>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
-    </div>
-</section>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function buscarVuelo() {
-            alert("🔍 Buscando los mejores vuelos para ti...");
-        }
-    </script>
+    </section>
+    <section>
+        <div>
+            <!---Destinos pupulares commit 4 --->
+            <section class="destinos-populares py-5">
+                <div class="container text-center">
+                    <h2 class="display-4 fw-bold text-white mb-5">
+                        Destinos <span class="text-warning border-bottom border-warning border-3">Populares</span>
+                    </h2>
+
+                    <div class="row g-4">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="destino-card rounded-4 overflow-hidden position-relative">
+                                <img src="https://www.civitatis.com/blog/wp-content/uploads/2023/02/playa-bocagrande-cartagena-indias.jpg"
+                                    class="img-fluid w-100 h-100" alt="Cartagena">
+                                <div class="destino-overlay p-4 d-flex flex-column justify-content-end text-start">
+                                    <h3 class="fw-bold text-white mb-0">Cartagena</h3>
+                                    <p class="text-warning mb-3">desde $120.000</p>
+                                    <a href="#" class="btn btn-ver-vuelos rounded-pill">Ver vuelos <i
+                                            class="bi bi-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6">
+                            <div class="destino-card rounded-4 overflow-hidden position-relative">
+                                <img src="https://elviajerofeliz.com/wp-content/uploads/2017/08/Qu%C3%A9-ver-en-Nueva-York-5-cosas-que-no-te-puedes-perder.gif"
+                                    class="img-fluid w-100 h-100" alt="Nueva York">
+                                <div class="destino-overlay p-4 d-flex flex-column justify-content-end text-start">
+                                    <h3 class="fw-bold text-white mb-0">Nueva York</h3>
+                                    <p class="text-warning mb-3">desde $1.200.000</p>
+                                    <a href="#" class="btn btn-ver-vuelos rounded-pill">Ver vuelos <i
+                                            class="bi bi-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6">
+                            <div class="destino-card rounded-4 overflow-hidden position-relative">
+                                <span class="badge-descuento">30% de descuento</span>
+                                <img src="https://blogdeviagemeturismo.com.br/wp-content/uploads/2024/09/Ilha-de-San-Andres-Colombia.jpg"
+                                    class="img-fluid w-100 h-100" alt="San Andrés">
+                                <div class="destino-overlay p-4 d-flex flex-column justify-content-end text-start">
+                                    <h3 class="fw-bold text-white mb-3">San Andrés</h3>
+                                    <a href="#" class="btn btn-ver-vuelos rounded-pill">Ver vuelos <i
+                                            class="bi bi-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                function buscarVuelo() {
+                    alert("Buscando vuelos disponibles según los datos ingresados.");
+                }
+            </script>
+            <section>
+                <div>
+                    <!---sobre nosotros commit 4 --->
+                    <section class="sobre-nosotros py-5" style="background-color: #0a1428;">
+                        <div class="container">
+                            <div class="row align-items-center g-5">
+                                <div class="col-lg-6">
+                                    <h2 class="display-5 fw-bold text-white mb-4">
+                                        Sobre <span class="text-warning">SkyDreams Travel</span>
+                                    </h2>
+                                    <p class="text-white-50 lead mb-4">
+                                        Somos más que una aerolínea; somos tus compañeros en cada aventura.
+                                        Con más de 15 años de experiencia conectando destinos, nuestro compromiso
+                                        es ofrecerte un viaje seguro, cómodo y memorable desde el despegue hasta el
+                                        aterrizaje.
+                                    </p>
+                                    <p class="text-white-50 mb-5">
+                                        Nuestra moderna flota y nuestro excepcional equipo de profesionales
+                                        están dedicados a brindarte un servicio de clase mundial.
+                                    </p>
+
+                                    <div class="row g-4">
+                                        <div class="col-6 d-flex align-items-start">
+                                            <div class="icon-small me-3"><i class="bi bi-shield-check"></i></div>
+                                            <div>
+                                                <h6 class="text-white fw-bold mb-1">Seguridad Primero</h6>
+                                                <p class="text-white-50 small mb-0">Altos estándares internacionales.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 d-flex align-items-start">
+                                            <div class="icon-small me-3"><i class="bi bi-clock-history"></i></div>
+                                            <div>
+                                                <h6 class="text-white fw-bold mb-1">Puntualidad</h6>
+                                                <p class="text-white-50 small mb-0">Respetamos tu tiempo siempre.</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 d-flex align-items-start mt-4">
+                                            <div class="icon-small me-3"><i class="bi bi-heart"></i></div>
+                                            <div>
+                                                <h6 class="text-white fw-bold mb-1">Servicio Excepcional</h6>
+                                                <p class="text-white-50 small mb-0">Atención cálida y personalizada.</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 d-flex align-items-start mt-4">
+                                            <div class="icon-small me-3"><i class="bi bi-airplane"></i></div>
+                                            <div>
+                                                <h6 class="text-white fw-bold mb-1">Flota Moderna</h6>
+                                                <p class="text-white-50 small mb-0">Aviones de última generación.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <div class="position-relative">
+                                        <img src="https://img.freepik.com/fotos-premium/avion-despegando-pista-aterrizaje_1019429-148.jpg"
+                                            alt="Avión SkyDreams" class="img-fluid rounded-4 shadow-lg">
+
+                                        <div class="badge-excelencia p-3 rounded-3 shadow">
+                                            <span class="badge bg-warning text-dark mb-2 fw-bold">Excelencia
+                                                premiada</span>
+                                            <h4 class="text-white fw-bold mb-0">Mejor Aerolínea 2025</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
 </body>
+
 </html>
-<section>
-    <div>
-        <!---sobre nosotros commit 4 --->
-        <section class="sobre-nosotros py-5" style="background-color: #0a1428;">
-    <div class="container">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
-                <h2 class="display-5 fw-bold text-white mb-4">
-                    Sobre <span class="text-warning">SkyDreams Travel</span>
-                </h2>
-                <p class="text-white-50 lead mb-4">
-                    Somos más que una aerolínea; somos tus compañeros en cada aventura. 
-                    Con más de 15 años de experiencia conectando destinos, nuestro compromiso 
-                    es ofrecerte un viaje seguro, cómodo y memorable desde el despegue hasta el aterrizaje.
-                </p>
-                <p class="text-white-50 mb-5">
-                    Nuestra moderna flota y nuestro excepcional equipo de profesionales 
-                    están dedicados a brindarte un servicio de clase mundial.
-                </p>
-
-                <div class="row g-4">
-                    <div class="col-6 d-flex align-items-start">
-                        <div class="icon-small me-3"><i class="bi bi-shield-check"></i></div>
-                        <div>
-                            <h6 class="text-white fw-bold mb-1">Seguridad Primero</h6>
-                            <p class="text-white-50 small mb-0">Altos estándares internacionales.</p>
-                        </div>
-                    </div>
-                    <div class="col-6 d-flex align-items-start">
-                        <div class="icon-small me-3"><i class="bi bi-clock-history"></i></div>
-                        <div>
-                            <h6 class="text-white fw-bold mb-1">Puntualidad</h6>
-                            <p class="text-white-50 small mb-0">Respetamos tu tiempo siempre.</p>
-                        </div>
-                    </div>
-                    <div class="col-6 d-flex align-items-start mt-4">
-                        <div class="icon-small me-3"><i class="bi bi-heart"></i></div>
-                        <div>
-                            <h6 class="text-white fw-bold mb-1">Servicio Excepcional</h6>
-                            <p class="text-white-50 small mb-0">Atención cálida y personalizada.</p>
-                        </div>
-                    </div>
-                    <div class="col-6 d-flex align-items-start mt-4">
-                        <div class="icon-small me-3"><i class="bi bi-airplane"></i></div>
-                        <div>
-                            <h6 class="text-white fw-bold mb-1">Flota Moderna</h6>
-                            <p class="text-white-50 small mb-0">Aviones de última generación.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="position-relative">
-                    <img src="https://img.freepik.com/fotos-premium/avion-despegando-pista-aterrizaje_1019429-148.jpg" 
-                         alt="Avión SkyDreams" class="img-fluid rounded-4 shadow-lg">
-                    
-                    <div class="badge-excelencia p-3 rounded-3 shadow">
-                        <span class="badge bg-warning text-dark mb-2 fw-bold">Excelencia premiada</span>
-                        <h4 class="text-white fw-bold mb-0">Mejor Aerolínea 2025</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-   
