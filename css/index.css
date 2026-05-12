@@ -70,7 +70,6 @@
             transform: translateY(-3px);
         }
         /* ====================== CALENDARIO - Corrección final ====================== */
-
 .search-box input[type="date"] {
     font-size: 0.75rem !important;     /* letra más pequeña para que quepa el año completo */
     padding: 0 10px !important;
@@ -177,4 +176,95 @@
     font-weight: bold;
     font-size: 0.85rem;
     z-index: 5;
+}
+/* --- ESTILOS SECCIÓN BENEFICIOS --- */
+.bg-dark-blue {
+    background-color: #070d19; /* Un tono un poco más oscuro que el fondo general */
+}
+
+.icon-circle {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(245, 196, 0, 0.1); /* Fondo dorado muy suave */
+    border: 2px solid #f5c400; 
+    color: #f5c400; /* Icono dorado */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.beneficio-item:hover .icon-circle {
+    background-color: #f5c400;
+    color: #070d19;
+    transform: scale(1.1);
+}
+
+/* Efecto de la tarjeta de Cancelación Flexible (la que tiene el cuadro oscuro de fondo) */
+.highlight-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.beneficio-item p {
+    line-height: 1.4;
+    max-width: 200px;
+    margin: 0 auto;
+}
+.icon-circle {
+    width: 80px;      /* Tamaño del círculo */
+    height: 80px;
+    border: 2px solid #f5c400; /* Color dorado del borde */
+    border-radius: 50%;
+    display: flex;             /* Centra el icono horizontalmente */
+    align-items: center;       /* Centra el icono verticalmente */
+    justify-content: center;
+    margin: 0 auto;           /* Centra el círculo en la columna */
+    font-size: 2rem;           /* Tamaño del icono */
+    color: #f5c400;            /* Color del icono */
+    transition: all 0.3s ease;
+}
+
+.icon-circle:hover {
+    background-color: #f5c400;
+    color: #0a1428;
+    transform: translateY(-5px);
+}
+/* --- ESTILOS SECCIÓN sobre nosotros --- */
+/* Estilos para los iconos pequeños de "Sobre Nosotros" */
+.icon-small {
+    width: 45px;
+    height: 45px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(245, 196, 0, 0.3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f5c400;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+/* Cuadro flotante sobre la imagen */
+.badge-excelencia {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    background: rgba(10, 20, 40, 0.8);
+    backdrop-filter: blur(10px);
+    border-left: 4px solid #f5c400;
+    max-width: 250px;
+}
+
+.sobre-nosotros img {
+    filter: brightness(0.9);
+    transition: transform 0.5s ease;
+}
+
+.sobre-nosotros img:hover {
+    transform: scale(1.02);
 }
