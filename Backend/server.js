@@ -105,7 +105,68 @@ app.delete('/api/vuelos/:id', async (req, res) => {
   }
 });
 
+// ==========================================
+// RUTAS PARA RESERVAS
+// ==========================================
+app.get('/api/reservas', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                r.id_reserva,
+                r.fecha_hora_reserva,
+                r.valor_total,
+                r.estado,
+                c.nombres || ' ' || c.apellidos AS cliente_nombre,
+                c.correo AS cliente_email,
+                c.telefono AS cliente_telefono,
+                v.cod_vuelo,
+                co.nombre AS origen,
+                cd.nombre AS destino,
+                (SELECT COUNT(*) FROM tiquetes t WHERE t.id_reserva = r.id_reserva) AS numero_boletos,
+                COALESCE(pt.nombre, 'Ninguno') AS paquete_turistico
+            FROM reservas r
+            JOIN clientes c ON r.id_cliente = c.id_cliente
+            JOIN vuelos v ON r.id_vuelo = v.id_vuelo
+            JOIN ciudades co ON v.id_ciudad_origen = co.id_ciudad
+            JOIN ciudades cd ON v.id_ciudad_destino = cd.id_ciudad
+            LEFT JOIN reserva_paquete rp ON r.id_reserva = rp.id_reserva
+            LEFT JOIN paquetes_turisticos pt ON rp.id_paquete = pt.id_paquete
+            ORDER BY r.id_reserva ASC;
+        `;
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error obteniendo reservas:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+// Actualizar el estado de una reserva (Editar)
+app.put('/api/reservas/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado } = req.body;
+        
+        await pool.query('UPDATE reservas SET estado = $1 WHERE id_reserva = $2', [estado, id]);
+        res.json({ message: 'Reserva actualizada correctamente' });
+    } catch (error) {
+        console.error("Error al actualizar reserva:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
 
+// Eliminar una reserva permanentemente (Borrar)
+app.delete('/api/reservas/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Gracias a que configuraste "ON DELETE CASCADE" en tu base de datos, 
+        // al borrar la reserva, se borrarán automáticamente sus tiquetes asociados.
+        await pool.query('DELETE FROM reservas WHERE id_reserva = $1', [id]);
+        res.json({ message: 'Reserva eliminada permanentemente' });
+    } catch (error) {
+        console.error("Error al eliminar reserva:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
 
 // ==========================================
 // INICIAR EL SERVIDOR
