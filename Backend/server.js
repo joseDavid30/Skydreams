@@ -169,6 +169,51 @@ app.delete('/api/reservas/:id', async (req, res) => {
 });
 
 // ==========================================
+// RUTAS PARA BOLETOS (TIQUETES)
+// ==========================================
+
+// Obtener todos los boletos
+app.get('/api/boletos', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                t.id_tiquete,
+                t.clase,
+                t.num_asiento,
+                t.precio_final,
+                r.id_reserva,
+                c.nombres || ' ' || c.apellidos AS nombre_pasajero
+            FROM tiquetes t
+            JOIN reservas r ON t.id_reserva = r.id_reserva
+            JOIN clientes c ON r.id_cliente = c.id_cliente
+            ORDER BY t.id_tiquete ASC;
+        `;
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error obteniendo boletos:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+// Actualizar un boleto (Editar o Mejorar)
+app.put('/api/boletos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { clase, num_asiento, precio_final } = req.body;
+        
+        await pool.query(
+            'UPDATE tiquetes SET clase = $1, num_asiento = $2, precio_final = $3 WHERE id_tiquete = $4', 
+            [clase, num_asiento, precio_final, id]
+        );
+        res.json({ message: 'Boleto actualizado correctamente' });
+    } catch (error) {
+        console.error("Error al actualizar boleto:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
+
+// ==========================================
 // INICIAR EL SERVIDOR
 // ==========================================
 const PORT = 3000;

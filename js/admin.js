@@ -41,6 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     cargarVuelosDesdeBD();
                 } else if (page === 'reservas') { 
                     cargarReservasDesdeBD();
+                } else if (page === 'boletos') { 
+                    cargarBoletosDesdeBD();
                 }
             } else {
                 mostrarConstruccion(title);
@@ -475,4 +477,134 @@ window.abrirModalReserva = function(id_reserva) {
     // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('modalDetalleReserva'));
     modal.show();
+};
+
+// ==============================================================
+// MÓDULO DE BOLETOS
+// ==============================================================
+
+let listaBoletosGlobal = [];
+
+async function cargarBoletosDesdeBD() {
+    try {
+        const respuesta = await fetch('http://localhost:3000/api/boletos');
+        const boletos = await respuesta.json();
+        
+        listaBoletosGlobal = boletos;
+
+        const tbody = document.getElementById('tbody-boletos');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+
+        boletos.forEach(boleto => {
+            const idBoletoFormateado = 'TKT' + String(boleto.id_tiquete).padStart(3, '0');
+            const idReservaFormateado = 'RES' + String(boleto.id_reserva).padStart(3, '0');
+            
+            let claseBadge = boleto.clase === 'Business' ? 'badge-business' : 'badge-economica';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="ps-4 py-3 fw-bold text-dark">${idBoletoFormateado}</td>
+                <td class="py-3 text-orange">${idReservaFormateado}</td>
+                <td class="py-3 text-dark">${boleto.nombre_pasajero}</td>
+                <td class="py-3 fw-medium text-dark">${boleto.num_asiento}</td>
+                <td class="py-3">
+                    <span class="badge ${claseBadge}">${boleto.clase}</span>
+                </td>
+                <td class="py-3 text-dark">$${parseFloat(boleto.precio_final).toLocaleString('es-ES')}</td>
+                <td class="pe-4 py-3 text-center">
+                    <button class="btn btn-sm text-dark d-inline-flex align-items-center gap-1 hover-bg-light fw-medium" onclick="abrirModalEditarBoleto(${boleto.id_tiquete})">
+                        <i class="bi bi-pencil-square"></i> Editar
+                    </button>
+                    <button class="btn btn-sm text-orange d-inline-flex align-items-center gap-1 hover-bg-light fw-medium ms-2" onclick="mejorarClaseBoleto(${boleto.id_tiquete})">
+                        <i class="bi bi-arrow-up-circle"></i> Mejorar
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (error) {
+        console.error("Error cargando los boletos:", error);
+    }
+}
+
+// Lógica para abrir modal de Edición
+window.abrirModalEditarBoleto = function(id_tiquete) {
+    const boleto = listaBoletosGlobal.find(b => b.id_tiquete === id_tiquete);
+    if (!boleto) return;
+
+    const idFormateado = 'TKT' + String(boleto.id_tiquete).padStart(3, '0');
+
+    document.getElementById('modalBoletoTitle').textContent = `Editar Boleto - ${idFormateado}`;
+    document.getElementById('edit-bol-id').value = boleto.id_tiquete;
+    document.getElementById('edit-bol-nombre').value = boleto.nombre_pasajero;
+    document.getElementById('edit-bol-asiento').value = boleto.num_asiento;
+    document.getElementById('edit-bol-clase').value = boleto.clase;
+    document.getElementById('edit-bol-precio').value = parseFloat(boleto.precio_final);
+
+    const modal = new bootstrap.Modal(document.getElementById('modalEditarBoleto'));
+    modal.show();
+};
+
+// Guardar cambios desde el modal
+document.addEventListener('DOMContentLoaded', () => {
+    // Asegurarnos de que el botón exista antes de asignarle el evento
+    document.body.addEventListener('click', async (e) => {
+        if (e.target && e.target.id === 'btn-guardar-boleto') {
+            const id = document.getElementById('edit-bol-id').value;
+            const datosActualizados = {
+                clase: document.getElementById('edit-bol-clase').value,
+                num_asiento: document.getElementById('edit-bol-asiento').value,
+                precio_final: document.getElementById('edit-bol-precio').value
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/boletos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosActualizados)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditarBoleto')).hide();
+                    cargarBoletosDesdeBD();
+                }
+            } catch (error) {
+                console.error("Error guardando boleto:", error);
+            }
+        }
+    });
+});
+
+// Acción rápida: Mejorar a Business
+window.mejorarClaseBoleto = async function(id_tiquete) {
+    const boleto = listaBoletosGlobal.find(b => b.id_tiquete === id_tiquete);
+    if (boleto.clase === 'Business' || boleto.clase === 'Primera Clase') {
+        alert("Este boleto ya cuenta con una clase premium.");
+        return;
+    }
+
+    const confirmacion = confirm(`¿Deseas mejorar el asiento de ${boleto.nombre_pasajero} a clase Business? Se aplicará un cargo adicional de $200.`);
+    
+    if (confirmacion) {
+        const nuevoPrecio = parseFloat(boleto.precio_final) + 200.00;
+        try {
+            const response = await fetch(`http://localhost:3000/api/boletos/${id_tiquete}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    clase: 'Business',
+                    num_asiento: boleto.num_asiento, // Mantiene el asiento o lo cambias luego
+                    precio_final: nuevoPrecio
+                })
+            });
+
+            if (response.ok) {
+                cargarBoletosDesdeBD();
+            }
+        } catch (error) {
+            console.error("Error mejorando boleto:", error);
+        }
+    }
 };
