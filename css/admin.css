@@ -327,3 +327,46 @@ small {
     color: #0f172a;
     border-color: #cbd5e1;
 }
+
+/* =========================================
+   ESTILOS MÓDULO DE RESERVAS
+   ========================================= */
+
+/* Estilo para las etiquetas de estado */
+.badge-confirmado, .badge-pendiente {
+    background-color: #fef9c3;
+    color: #b45309;
+    border: 1px solid #fde047;
+    padding: 0.4em 1em;
+    font-weight: 500;
+    border-radius: 50rem;
+}
+
+.badge-cancelado {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 0.4em 1em;
+    font-weight: 500;
+    border-radius: 50rem;
+}
+
+/* Pestañas personalizadas del Modal (Look "Pastilla") */
+.custom-tabs {
+    background-color: #f1f5f9; /* Fondo gris claro */
+}
+
+.custom-tabs .nav-link {
+    color: #475569; /* Color de texto inactivo */
+    transition: all 0.3s ease;
+}
+
+.custom-tabs .nav-link:hover {
+    color: #0f172a;
+}
+
+.custom-tabs .nav-link.active {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra suave para la pastilla activa */
+}

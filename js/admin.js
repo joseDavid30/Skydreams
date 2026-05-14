@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Función asíncrona para cargar los HTML externos desde vistas_admin
+// Función asíncrona para cargar los HTML externos desde vistas_admin
     async function cargarVista(page, title) {
         try {
             let nombreArchivo = page;
@@ -39,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     initCharts(); 
                 } else if (page === 'vuelos') {
                     cargarVuelosDesdeBD();
+                } else if (page === 'reservas') { 
+                    cargarReservasDesdeBD();
                 }
             } else {
                 mostrarConstruccion(title);
@@ -321,3 +323,156 @@ function llenarDatosDePrueba() {
     document.getElementById('in-capacidad').value = Math.floor(Math.random() * 200 + 150);
     document.getElementById('in-estado').value = 'Programado';
 }
+
+// ==============================================================
+// MÓDULO DE RESERVAS (Conexión a BD Real)
+// ==============================================================
+
+let listaReservasGlobal = [];
+
+async function cargarReservasDesdeBD() {
+    try {
+        const respuesta = await fetch('http://localhost:3000/api/reservas');
+        const reservas = await respuesta.json();
+        
+        listaReservasGlobal = reservas; // Guardamos globalmente para el modal
+
+        const tbody = document.getElementById('tbody-reservas');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+
+        if(reservas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No hay reservas registradas en la base de datos.</td></tr>`;
+            return;
+        }
+
+        reservas.forEach(reserva => {
+            // Formatear datos para que se vean igual al diseño
+            const idFormateado = 'RES' + String(reserva.id_reserva).padStart(3, '0');
+            const vueloFormat = `${reserva.cod_vuelo} - ${reserva.origen} a ${reserva.destino}`;
+            
+            const fechaObj = new Date(reserva.fecha_hora_reserva);
+            const fechaCorto = fechaObj.toLocaleDateString('es-ES');
+            
+            let claseBadge = reserva.estado === 'Cancelado' ? 'badge-cancelado' : 'badge-confirmado';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="ps-4 py-3 fw-bold text-dark">${idFormateado}</td>
+                <td class="py-3 text-dark">${reserva.cliente_nombre}</td>
+                <td class="py-3 text-dark">${vueloFormat}</td>
+                <td class="py-3 text-dark">${fechaCorto}</td>
+                <td class="py-3 text-dark">$${parseFloat(reserva.valor_total).toLocaleString('es-ES')}</td>
+                <td class="py-3">
+                    <span class="badge ${claseBadge}">${reserva.estado}</span>
+                </td>
+                <td class="pe-4 py-3 text-center">
+                    <button class="btn btn-sm text-dark d-inline-flex align-items-center gap-1 hover-bg-light fw-medium" onclick="abrirModalReserva(${reserva.id_reserva})">
+                        <i class="bi bi-eye"></i> Ver
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (error) {
+        console.error("Error cargando las reservas reales:", error);
+    }
+}
+
+window.abrirModalReserva = function(id_reserva) {
+    // Buscamos la reserva seleccionada en la variable global
+    const reserva = listaReservasGlobal.find(r => r.id_reserva === id_reserva);
+    if (!reserva) return;
+
+    // Formatear datos
+    const idFormateado = 'RES' + String(reserva.id_reserva).padStart(3, '0');
+    const vueloFormat = `${reserva.cod_vuelo} - ${reserva.origen} a ${reserva.destino}`;
+    
+    const fechaObj = new Date(reserva.fecha_hora_reserva);
+    const fechaCorto = fechaObj.toLocaleDateString('es-ES');
+    const fechaLargo = fechaObj.toLocaleString('es-ES');
+
+    // Llenar Pestaña: Información General
+    document.getElementById('modalReservaTitle').textContent = `Detalles de Reserva - ${idFormateado}`;
+    document.getElementById('det-vuelo').textContent = vueloFormat;
+    document.getElementById('det-fecha').textContent = fechaCorto;
+    document.getElementById('det-valor').textContent = '$' + parseFloat(reserva.valor_total).toLocaleString('es-ES');
+    document.getElementById('det-boletos').textContent = reserva.numero_boletos;
+    document.getElementById('det-paquete').textContent = reserva.paquete_turistico;
+    
+    // Configurar el estado visual en el Modal
+    const badgeEstado = document.getElementById('det-estado');
+    badgeEstado.textContent = reserva.estado;
+    badgeEstado.className = 'badge ' + (reserva.estado === 'Cancelado' ? 'badge-cancelado' : 'badge-confirmado');
+
+    // Llenar Pestaña: Cliente
+    document.getElementById('det-cli-nombre').textContent = reserva.cliente_nombre;
+    document.getElementById('det-cli-email').textContent = reserva.cliente_email;
+    document.getElementById('det-cli-tel').textContent = reserva.cliente_telefono;
+
+    // Llenar Pestaña: Historial
+    document.getElementById('hist-fecha-creacion').textContent = fechaLargo;
+    document.getElementById('hist-estado-actual').textContent = reserva.estado;
+
+    // ==========================================
+    // CONFIGURAR BOTONES DE EDICIÓN Y BORRADO
+    // ==========================================
+    
+    // 1. Botón Editar (Abre el modal pequeñito)
+    const btnEditar = document.getElementById('btn-editar-reserva');
+    btnEditar.onclick = () => {
+        // Pre-seleccionar el estado actual en el select
+        document.getElementById('select-nuevo-estado').value = reserva.estado;
+        const modalEdit = new bootstrap.Modal(document.getElementById('modalEditarEstado'));
+        modalEdit.show();
+        
+        // Guardar cambios
+        document.getElementById('btn-guardar-estado').onclick = async () => {
+            const nuevoEstado = document.getElementById('select-nuevo-estado').value;
+            try {
+                const response = await fetch(`http://localhost:3000/api/reservas/${reserva.id_reserva}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+                
+                if (response.ok) {
+                    modalEdit.hide(); // Cierra modal chiquito
+                    bootstrap.Modal.getInstance(document.getElementById('modalDetalleReserva')).hide(); // Cierra modal grande
+                    cargarReservasDesdeBD(); // Recarga la tabla
+                    alert("¡Estado actualizado con éxito!");
+                }
+            } catch (error) {
+                console.error("Error editando:", error);
+                alert("Error al actualizar la reserva.");
+            }
+        };
+    };
+
+    // 2. Botón Borrar (Elimina la reserva de la BD)
+    const btnBorrar = document.getElementById('btn-borrar-reserva');
+    btnBorrar.onclick = async () => {
+        const confirmacion = confirm(`¿Estás 100% seguro de que deseas ELIMINAR la reserva ${idFormateado}? Esta acción no se puede deshacer.`);
+        
+        if (confirmacion) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/reservas/${reserva.id_reserva}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalDetalleReserva')).hide();
+                    cargarReservasDesdeBD(); // Recarga la tabla automáticamente
+                } else {
+                    alert("Hubo un error al intentar borrar la reserva.");
+                }
+            } catch (error) {
+                console.error("Error borrando:", error);
+            }
+        }
+    };
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('modalDetalleReserva'));
+    modal.show();
+};
