@@ -214,6 +214,67 @@ app.put('/api/boletos/:id', async (req, res) => {
 });
 
 // ==========================================
+// RUTAS PARA PAQUETES TURÍSTICOS
+// ==========================================
+
+// Leer todos los paquetes
+app.get('/api/paquetes', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM paquetes_turisticos ORDER BY id_paquete ASC');
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error obteniendo paquetes:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
+
+// Crear un nuevo paquete
+app.post('/api/paquetes', async (req, res) => {
+    try {
+        const { nombre, descripcion, sector_destino, duracion, precio, estado } = req.body;
+        await pool.query(
+            'INSERT INTO paquetes_turisticos (nombre, descripcion, sector_destino, duracion, precio, estado) VALUES ($1, $2, $3, $4, $5, $6)',
+            [nombre, descripcion, sector_destino, duracion, precio, estado]
+        );
+        res.json({ message: 'Paquete creado con éxito' });
+    } catch (error) {
+        console.error("Error creando paquete:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
+
+// Actualizar un paquete (Editar todo o solo cambiar estado)
+app.put('/api/paquetes/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, descripcion, sector_destino, duracion, precio, estado } = req.body;
+        
+        await pool.query(
+            'UPDATE paquetes_turisticos SET nombre = $1, descripcion = $2, sector_destino = $3, duracion = $4, precio = $5, estado = $6 WHERE id_paquete = $7',
+            [nombre, descripcion, sector_destino, duracion, precio, estado, id]
+        );
+        res.json({ message: 'Paquete actualizado' });
+    } catch (error) {
+        console.error("Error actualizando paquete:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
+
+// Eliminar un paquete permanentemente
+app.delete('/api/paquetes/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM paquetes_turisticos WHERE id_paquete = $1', [id]);
+        res.json({ message: 'Paquete eliminado' });
+    } catch (error) {
+        console.error("Error eliminando paquete:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
+
+
+
+// ==========================================
 // INICIAR EL SERVIDOR
 // ==========================================
 const PORT = 3000;
