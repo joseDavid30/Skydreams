@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     cargarReservasDesdeBD();
                 } else if (page === 'boletos') { 
                     cargarBoletosDesdeBD();
+                } else if (page === 'paquetes') { 
+                    cargarPaquetesDesdeBD();
                 }
             } else {
                 mostrarConstruccion(title);
@@ -606,5 +608,174 @@ window.mejorarClaseBoleto = async function(id_tiquete) {
         } catch (error) {
             console.error("Error mejorando boleto:", error);
         }
+    }
+};
+
+// ==============================================================
+// MÓDULO DE PAQUETES TURÍSTICOS
+// ==============================================================
+
+let listaPaquetesGlobal = [];
+
+async function cargarPaquetesDesdeBD() {
+    try {
+        const respuesta = await fetch('http://localhost:3000/api/paquetes');
+        const paquetes = await respuesta.json();
+        listaPaquetesGlobal = paquetes;
+
+        const contenedor = document.getElementById('contenedor-paquetes');
+        if (!contenedor) return;
+        contenedor.innerHTML = '';
+
+        paquetes.forEach(paquete => {
+            const esActivo = paquete.estado === 'Activo';
+            const claseBadge = esActivo ? 'badge-activo' : 'badge-inactivo';
+            const iconoPower = esActivo ? 'bi-power text-danger' : 'bi-check-circle text-success';
+            const tituloPower = esActivo ? 'Desactivar' : 'Activar';
+
+            // Tarjeta HTML
+            const tarjeta = document.createElement('div');
+            tarjeta.className = 'col-12 col-md-6 col-lg-4 d-flex'; 
+            
+            tarjeta.innerHTML = `
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden card-paquete w-100 p-0 bg-white">
+                    
+                    <div class="bg-gradient-orange p-4 text-center text-white d-flex flex-column justify-content-center w-100 m-0" style="min-height: 160px;">
+                        <h3 class="fw-bold mb-1 text-wrap" style="word-break: break-word;">${paquete.nombre}</h3>
+                        <p class="mb-0 small opacity-75">${paquete.sector_destino}</p>
+                    </div>
+                    
+                    <div class="card-body p-4 d-flex flex-column w-100" style="text-align: left !important;">
+                        <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+                            <h6 class="fw-bold text-dark mb-0 text-start">${paquete.nombre}</h6>
+                            <span class="badge ${claseBadge} small text-nowrap">${paquete.estado}</span>
+                        </div>
+                        <p class="text-muted small mb-3 text-start">${paquete.duracion || 'N/A'}</p>
+                        
+                        <p class="text-muted small mb-4 text-start" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            ${paquete.descripcion}
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top w-100">
+                            <div class="text-start">
+                                <span class="text-muted small d-block" style="line-height: 1;">Precio</span>
+                                <span class="fw-bold text-orange fs-5">$${parseFloat(paquete.precio).toLocaleString('es-ES')}</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn-icon-action" title="Editar" onclick="abrirModalEditarPaquete(${paquete.id_paquete})">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn-icon-action" title="${tituloPower}" onclick="toggleEstadoPaquete(${paquete.id_paquete}, '${paquete.estado}')">
+                                    <i class="bi ${iconoPower}"></i>
+                                </button>
+                                <button class="btn-icon-action" title="Eliminar" onclick="eliminarPaquete(${paquete.id_paquete})">
+                                    <i class="bi bi-trash text-danger"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            `;
+            contenedor.appendChild(tarjeta);
+        });
+    } catch (error) {
+        console.error("Error cargando paquetes:", error);
+    }
+}
+
+// 1. Abrir Modal para CREAR
+window.abrirModalCrearPaquete = function() {
+    document.getElementById('form-paquete').reset();
+    document.getElementById('paq-id').value = ''; // ID vacío significa "Crear"
+    
+    document.getElementById('modalPaqueteTitle').textContent = 'Crear Nuevo Paquete Turístico';
+    document.getElementById('btn-guardar-paquete').textContent = 'Crear Paquete';
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalFormPaquete'));
+    modal.show();
+};
+
+// 2. Abrir Modal para EDITAR
+window.abrirModalEditarPaquete = function(id_paquete) {
+    const pq = listaPaquetesGlobal.find(p => p.id_paquete === id_paquete);
+    if (!pq) return;
+
+    document.getElementById('paq-id').value = pq.id_paquete;
+    document.getElementById('paq-nombre').value = pq.nombre;
+    document.getElementById('paq-destino').value = pq.sector_destino;
+    document.getElementById('paq-duracion').value = pq.duracion;
+    document.getElementById('paq-desc').value = pq.descripcion;
+    document.getElementById('paq-precio').value = parseFloat(pq.precio);
+    document.getElementById('paq-estado').value = pq.estado;
+
+    document.getElementById('modalPaqueteTitle').textContent = 'Editar Paquete Turístico';
+    document.getElementById('btn-guardar-paquete').textContent = 'Guardar Cambios';
+
+    const modal = new bootstrap.Modal(document.getElementById('modalFormPaquete'));
+    modal.show();
+};
+
+// 3. Guardar (Decide si hace POST o PUT dependiendo de si hay ID)
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.addEventListener('click', async (e) => {
+        if (e.target && e.target.id === 'btn-guardar-paquete') {
+            const id = document.getElementById('paq-id').value;
+            
+            const datosPaquete = {
+                nombre: document.getElementById('paq-nombre').value,
+                sector_destino: document.getElementById('paq-destino').value,
+                duracion: document.getElementById('paq-duracion').value,
+                descripcion: document.getElementById('paq-desc').value,
+                precio: document.getElementById('paq-precio').value,
+                estado: document.getElementById('paq-estado').value
+            };
+
+            const url = id ? `http://localhost:3000/api/paquetes/${id}` : 'http://localhost:3000/api/paquetes';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosPaquete)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalFormPaquete')).hide();
+                    cargarPaquetesDesdeBD(); // Recarga las tarjetas
+                }
+            } catch (error) {
+                console.error("Error guardando paquete:", error);
+            }
+        }
+    });
+});
+
+// 4. Activar/Desactivar rápido con el botón de "Power"
+window.toggleEstadoPaquete = async function(id_paquete, estadoActual) {
+    const pq = listaPaquetesGlobal.find(p => p.id_paquete === id_paquete);
+    const nuevoEstado = estadoActual === 'Activo' ? 'Inactivo' : 'Activo';
+    
+    // Mantenemos los demás datos intactos, solo cambiamos el estado
+    const datosActualizados = { ...pq, estado: nuevoEstado };
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/paquetes/${id_paquete}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosActualizados)
+        });
+        if (response.ok) cargarPaquetesDesdeBD();
+    } catch (error) { console.error(error); }
+};
+
+// 5. Eliminar permanentemente (Icono de Basura)
+window.eliminarPaquete = async function(id_paquete) {
+    if (confirm('¿Estás seguro de que deseas eliminar este paquete turístico? Esta acción borrará el paquete de la base de datos.')) {
+        try {
+            const response = await fetch(`http://localhost:3000/api/paquetes/${id_paquete}`, { method: 'DELETE' });
+            if (response.ok) cargarPaquetesDesdeBD();
+        } catch (error) { console.error(error); }
     }
 };
