@@ -450,3 +450,26 @@ small {
     border-color: #cbd5e1;
 }
 
+/* =========================================
+   ESTILOS MÓDULO DE CLIENTES
+   ========================================= */
+
+.badge-contador-reservas {
+    background-color: #fef3c7; /* Amarillo muy pálido */
+    color: #b45309; /* Texto ámbar oscuro */
+    width: 35px;
+    height: 35px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.info-card-cliente {
+    background-color: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 0.75rem;
+    padding: 1rem;
+}

@@ -272,7 +272,81 @@ app.delete('/api/paquetes/:id', async (req, res) => {
     }
 });
 
+// ==========================================
+// RUTAS PARA GESTIÓN DE CLIENTES
+// ==========================================
 
+// 1. Obtener todos los clientes (ACTUALIZADO para traer nombres separados)
+app.get('/api/clientes', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                c.id_cliente,
+                c.nombres,
+                c.apellidos,
+                c.nombres || ' ' || c.apellidos AS nombre_completo,
+                c.correo,
+                c.telefono,
+                c.direccion AS ciudad,
+                c.fecha_registro,
+                COUNT(r.id_reserva) AS total_reservas
+            FROM clientes c
+            LEFT JOIN reservas r ON c.id_cliente = r.id_cliente
+            GROUP BY c.id_cliente
+            ORDER BY c.id_cliente ASC;
+        `;
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error obteniendo clientes:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
+
+// 2. Editar información del cliente
+app.put('/api/clientes/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombres, apellidos, correo, telefono, ciudad } = req.body;
+        
+        await pool.query(
+            'UPDATE clientes SET nombres = $1, apellidos = $2, correo = $3, telefono = $4, direccion = $5 WHERE id_cliente = $6',
+            [nombres, apellidos, correo, telefono, ciudad, id]
+        );
+        res.json({ message: 'Cliente actualizado correctamente' });
+    } catch (error) {
+        console.error("Error actualizando cliente:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
+
+// 3. Obtener el historial de reservas de un cliente específico
+app.get('/api/clientes/:id/reservas', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const query = `
+            SELECT 
+                r.id_reserva,
+                r.fecha_hora_reserva,
+                r.valor_total,
+                r.estado,
+                v.cod_vuelo,
+                co.nombre AS origen,
+                cd.nombre AS destino
+            FROM reservas r
+            JOIN vuelos v ON r.id_vuelo = v.id_vuelo
+            JOIN ciudades co ON v.id_ciudad_origen = co.id_ciudad
+            JOIN ciudades cd ON v.id_ciudad_destino = cd.id_ciudad
+            WHERE r.id_cliente = $1
+            ORDER BY r.id_reserva DESC;
+        `;
+        const result = await pool.query(query, [id]);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error obteniendo historial:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
 
 // ==========================================
 // INICIAR EL SERVIDOR

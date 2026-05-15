@@ -45,7 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     cargarBoletosDesdeBD();
                 } else if (page === 'paquetes') { 
                     cargarPaquetesDesdeBD();
-                }
+                }else if (page === 'clientes') { 
+                    cargarClientesDesdeBD(); }
             } else {
                 mostrarConstruccion(title);
             }
@@ -779,3 +780,165 @@ window.eliminarPaquete = async function(id_paquete) {
         } catch (error) { console.error(error); }
     }
 };
+
+// ==============================================================
+// MÓDULO DE CLIENTES
+// ==============================================================
+
+let listaClientesGlobal = [];
+
+async function cargarClientesDesdeBD() {
+    try {
+        const respuesta = await fetch('http://localhost:3000/api/clientes');
+        const clientes = await respuesta.json();
+        
+        listaClientesGlobal = clientes;
+
+        const tbody = document.getElementById('tbody-clientes');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+
+        clientes.forEach(cliente => {
+            const idFormateado = 'CLI' + String(cliente.id_cliente).padStart(3, '0');
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="ps-4 py-3 fw-bold text-dark">${idFormateado}</td>
+                <td class="py-3 text-dark">${cliente.nombre_completo}</td>
+                <td class="py-3 text-muted">${cliente.correo}</td>
+                <td class="py-3 text-muted">${cliente.telefono || 'N/A'}</td>
+                <td class="py-3 text-muted">${cliente.ciudad || 'N/A'}</td>
+                <td class="py-3 text-center">
+                    <span class="badge-contador-reservas">${cliente.total_reservas}</span>
+                </td>
+                <td class="pe-4 py-3 text-center">
+                    <button class="btn btn-sm text-dark d-inline-flex align-items-center gap-1 hover-bg-light fw-medium" onclick="abrirModalPerfilCliente(${cliente.id_cliente})">
+                        <i class="bi bi-eye"></i> Ver
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (error) {
+        console.error("Error cargando los clientes:", error);
+    }
+}
+
+window.abrirModalPerfilCliente = function(id_cliente) {
+    const cliente = listaClientesGlobal.find(c => c.id_cliente === id_cliente);
+    if (!cliente) return;
+
+    const idFormateado = 'CLI' + String(cliente.id_cliente).padStart(3, '0');
+    
+    // Formatear fecha (Ej. 14/1/2026)
+    let fechaTexto = 'N/A';
+    if (cliente.fecha_registro) {
+        const fechaObj = new Date(cliente.fecha_registro);
+        fechaTexto = fechaObj.toLocaleDateString('es-ES');
+    }
+
+    // Llenar Modal
+    document.getElementById('modalClienteTitle').textContent = `Perfil del Cliente - ${cliente.nombre_completo}`;
+    document.getElementById('perfil-nombre').textContent = cliente.nombre_completo;
+    document.getElementById('perfil-id').textContent = `ID de Cliente: ${idFormateado}`;
+    document.getElementById('perfil-reservas').textContent = cliente.total_reservas;
+    
+    document.getElementById('perfil-email').textContent = cliente.correo;
+    document.getElementById('perfil-telefono').textContent = cliente.telefono || 'N/A';
+    document.getElementById('perfil-ciudad').textContent = cliente.ciudad || 'N/A';
+    document.getElementById('perfil-fecha').textContent = fechaTexto;
+    
+    // 1. Abrir modal de Edición
+    document.getElementById('btn-abrir-editar-cliente').onclick = () => {
+        // Ocultamos el perfil visualmente
+        bootstrap.Modal.getInstance(document.getElementById('modalPerfilCliente')).hide();
+        
+        // Llenamos el form
+        document.getElementById('edit-cli-id').value = cliente.id_cliente;
+        document.getElementById('edit-cli-nombres').value = cliente.nombres;
+        document.getElementById('edit-cli-apellidos').value = cliente.apellidos;
+        document.getElementById('edit-cli-email').value = cliente.correo;
+        document.getElementById('edit-cli-telefono').value = cliente.telefono || '';
+        document.getElementById('edit-cli-ciudad').value = cliente.ciudad || '';
+        
+        // Abrimos el nuevo modal
+        const modalEdit = new bootstrap.Modal(document.getElementById('modalEditarCliente'));
+        modalEdit.show();
+    };
+
+    // 2. Ver Historial
+    document.getElementById('btn-ver-historial-cliente').onclick = async () => {
+        bootstrap.Modal.getInstance(document.getElementById('modalPerfilCliente')).hide();
+        
+        document.getElementById('titulo-historial-cliente').textContent = `Historial de Reservas - ${cliente.nombre_completo}`;
+        const tbody = document.getElementById('tbody-historial-cliente');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">Cargando historial...</td></tr>';
+        
+        const modalHist = new bootstrap.Modal(document.getElementById('modalHistorialReservas'));
+        modalHist.show();
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/clientes/${cliente.id_cliente}/reservas`);
+            const reservas = await response.json();
+            
+            tbody.innerHTML = '';
+            
+            if(reservas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Este cliente no ha realizado reservas aún.</td></tr>';
+                return;
+            }
+
+            reservas.forEach(r => {
+                const idRes = 'RES' + String(r.id_reserva).padStart(3, '0');
+                const fechaObj = new Date(r.fecha_hora_reserva);
+                const badgeClass = r.estado === 'Cancelado' ? 'badge-cancelado' : (r.estado === 'Pendiente' ? 'badge-pendiente' : 'badge-confirmado');
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="ps-4 py-3 fw-bold text-dark">${idRes}</td>
+                        <td class="py-3 text-muted">${fechaObj.toLocaleDateString('es-ES')}</td>
+                        <td class="py-3 text-dark">${r.cod_vuelo} - ${r.origen} a ${r.destino}</td>
+                        <td class="py-3 fw-medium text-dark">$${parseFloat(r.valor_total).toLocaleString('es-ES')}</td>
+                        <td class="py-3 pe-4"><span class="badge ${badgeClass}">${r.estado}</span></td>
+                    </tr>
+                `;
+            });
+        } catch (error) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger">Error al cargar datos.</td></tr>';
+        }
+    };
+    const modal = new bootstrap.Modal(document.getElementById('modalPerfilCliente'));
+    modal.show();
+};
+
+// Guardar edición del cliente
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.addEventListener('click', async (e) => {
+        if (e.target && e.target.id === 'btn-guardar-cliente') {
+            const id = document.getElementById('edit-cli-id').value;
+            const datosActualizados = {
+                nombres: document.getElementById('edit-cli-nombres').value,
+                apellidos: document.getElementById('edit-cli-apellidos').value,
+                correo: document.getElementById('edit-cli-email').value,
+                telefono: document.getElementById('edit-cli-telefono').value,
+                ciudad: document.getElementById('edit-cli-ciudad').value
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/clientes/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosActualizados)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide();
+                    cargarClientesDesdeBD(); // Refresca la tabla
+                }
+            } catch (error) {
+                console.error("Error guardando cliente:", error);
+            }
+        }
+    });
+});
