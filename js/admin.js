@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     cargarClientesDesdeBD(); 
                 } else if (page === 'usuarios') {
                     cargarUsuariosDesdeBD();
-                } 
+                } else if (page === 'ubicaciones') { 
+                    cargarUbicacionesDesdeBD(); }
             } else {
                 // Esto se ejecuta si el archivo HTML no existe (ej. error 404)
                 mostrarConstruccion(title);
@@ -1122,3 +1123,335 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// ==============================================================
+// MÓDULO DE UBICACIONES JERÁRQUICAS
+// ==============================================================
+
+let globalPaises = [], globalDeptos = [], globalCiudades = [];
+
+async function cargarUbicacionesDesdeBD() {
+    try {
+        const respuesta = await fetch('http://localhost:3000/api/ubicaciones');
+        const data = await respuesta.json();
+        
+        globalPaises = data.paises;
+        globalDeptos = data.departamentos;
+        globalCiudades = data.ciudades;
+
+        renderizarArbolUbicaciones();
+    } catch (error) {
+        console.error("Error cargando ubicaciones:", error);
+    }
+}
+
+function renderizarArbolUbicaciones() {
+    const contenedor = document.getElementById('contenedor-ubicaciones');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+
+    globalPaises.forEach(pais => {
+        // Filtrar hijos
+        const deptosDelPais = globalDeptos.filter(d => d.id_pais === pais.id_pais);
+        const totalCiudadesPais = deptosDelPais.reduce((acc, depto) => {
+            return acc + globalCiudades.filter(c => c.id_departamento === depto.id_departamento).length;
+        }, 0);
+
+        // 1. Crear Fila del País
+        const divPais = document.createElement('div');
+        divPais.innerHTML = `
+            <div class="ubi-item d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapsePais${pais.id_pais}" onclick="toggleChevron(this)">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-chevron-right ubi-chevron me-3"></i>
+                    <span class="ubi-icon">🌍</span>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">${pais.nombre}</h6>
+                        <small class="text-muted">${deptosDelPais.length} departamentos • ${totalCiudadesPais} ciudades</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn-texto-accion" onclick="event.stopPropagation(); abrirModalEditarPais(${pais.id_pais})"><i class="bi bi-pencil-square fs-5 text-muted"></i></button>
+                    <button class="btn-texto-accion" onclick="event.stopPropagation(); eliminarPais(${pais.id_pais})"><i class="bi bi-trash fs-5 text-muted text-danger"></i></button>
+                </div>
+            </div>
+            
+            <div class="collapse" id="collapsePais${pais.id_pais}">
+                <div class="deptos-wrapper" id="wrapper-pais-${pais.id_pais}"></div>
+            </div>
+        `;
+        contenedor.appendChild(divPais);
+
+        const wrapperDeptos = document.getElementById(`wrapper-pais-${pais.id_pais}`);
+
+        // 2. Crear Filas de Departamentos
+        deptosDelPais.forEach(depto => {
+            const ciudadesDelDepto = globalCiudades.filter(c => c.id_departamento === depto.id_departamento);
+            
+            const divDepto = document.createElement('div');
+            divDepto.innerHTML = `
+                <div class="ubi-item depto-container d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapseDepto${depto.id_departamento}" onclick="toggleChevron(this)">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-chevron-right ubi-chevron me-3"></i>
+                        <span class="ubi-icon" style="color: #e11d48;">📍</span>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">${depto.nombre}</h6>
+                            <small class="text-muted">${ciudadesDelDepto.length} ciudades</small>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn-texto-accion" onclick="event.stopPropagation(); abrirModalEditarDepto(${depto.id_departamento})"><i class="bi bi-pencil-square fs-5 text-muted"></i></button>
+                        <button class="btn-texto-accion" onclick="event.stopPropagation(); eliminarDepto(${depto.id_departamento})"><i class="bi bi-trash fs-5 text-muted text-danger"></i></button>
+                    </div>
+                </div>
+                
+                <div class="collapse" id="collapseDepto${depto.id_departamento}">
+                    <div class="ciudades-wrapper" id="wrapper-depto-${depto.id_departamento}"></div>
+                </div>
+            `;
+            wrapperDeptos.appendChild(divDepto);
+
+            const wrapperCiudades = document.getElementById(`wrapper-depto-${depto.id_departamento}`);
+
+            // 3. Crear Filas de Ciudades
+            ciudadesDelDepto.forEach(ciudad => {
+                const divCiudad = document.createElement('div');
+                divCiudad.className = 'ubi-item ciudad-container d-flex justify-content-between align-items-center';
+                divCiudad.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <span class="ubi-icon ms-4">🏙️</span>
+                        <h6 class="fw-medium mb-0 text-dark">${ciudad.nombre}</h6>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn-texto-accion" onclick="abrirModalEditarCiudad(${ciudad.id_ciudad})"><i class="bi bi-pencil-square fs-5 text-muted"></i></button>
+                        <button class="btn-texto-accion" onclick="eliminarCiudad(${ciudad.id_ciudad})"><i class="bi bi-trash fs-5 text-muted text-danger"></i></button>
+                    </div>
+                `;
+                wrapperCiudades.appendChild(divCiudad);
+            });
+
+            // Botón "Agregar Ciudad" al final del departamento
+            wrapperCiudades.innerHTML += `
+                <div class="ciudad-container py-3 d-flex justify-content-center">
+                    <button class="btn-add-nested" onclick="abrirModalCiudad(${pais.id_pais}, ${depto.id_departamento})">
+                        <i class="bi bi-plus-lg"></i> Agregar Ciudad
+                    </button>
+                </div>
+            `;
+        });
+
+        // Botón "Agregar Departamento" al final del país
+        wrapperDeptos.innerHTML += `
+            <div class="depto-container py-3 ms-4">
+                <button class="btn-add-nested" onclick="abrirModalDepto(${pais.id_pais})">
+                    <i class="bi bi-plus-lg"></i> Agregar Departamento
+                </button>
+            </div>
+        `;
+    });
+}
+
+// Animación de la flechita
+window.toggleChevron = function(elemento) {
+    const icon = elemento.querySelector('.ubi-chevron');
+    if(icon) icon.classList.toggle('open');
+};
+
+// ==========================================
+// LÓGICA DE LOS MODALES Y GUARDADO
+// ==========================================
+
+// --- FUNCIONES PARA ABRIR LOS MODALES (NO BORRAR) ---
+
+// 1. Abrir Modal País
+window.abrirModalPais = function() {
+    document.getElementById('form-pais').reset();
+    new bootstrap.Modal(document.getElementById('modalPais')).show();
+};
+
+// 2. Abrir Modal Departamento
+window.abrirModalDepto = function(id_pais_preseleccionado = null) {
+    document.getElementById('form-depto').reset();
+    const selectPais = document.getElementById('depto-pais');
+    selectPais.innerHTML = '<option value="">Seleccionar país</option>';
+    
+    globalPaises.forEach(p => {
+        selectPais.innerHTML += `<option value="${p.id_pais}">${p.nombre}</option>`;
+    });
+
+    if(id_pais_preseleccionado) selectPais.value = id_pais_preseleccionado;
+    
+    new bootstrap.Modal(document.getElementById('modalDepto')).show();
+};
+
+// 3. Abrir Modal Ciudad (Con Selects en Cadena)
+window.abrirModalCiudad = function(id_pais_pre = null, id_depto_pre = null) {
+    document.getElementById('form-ciudad').reset();
+    const selPais = document.getElementById('ciudad-pais');
+    const selDepto = document.getElementById('ciudad-depto');
+    
+    selPais.innerHTML = '<option value="">Seleccionar país</option>';
+    globalPaises.forEach(p => selPais.innerHTML += `<option value="${p.id_pais}">${p.nombre}</option>`);
+
+    // Evento: Cuando cambia el país, se filtran los departamentos
+    selPais.onchange = () => {
+        selDepto.innerHTML = '<option value="">Seleccionar departamento</option>';
+        const deptosFiltrados = globalDeptos.filter(d => d.id_pais == selPais.value);
+        deptosFiltrados.forEach(d => selDepto.innerHTML += `<option value="${d.id_departamento}">${d.nombre}</option>`);
+    };
+
+    if(id_pais_pre) {
+        selPais.value = id_pais_pre;
+        selPais.dispatchEvent(new Event('change')); // Forzar actualización del segundo select
+        if(id_depto_pre) selDepto.value = id_depto_pre;
+    } else {
+        selDepto.innerHTML = '<option value="">Primero selecciona un país</option>';
+    }
+
+    new bootstrap.Modal(document.getElementById('modalCiudad')).show();
+};
+
+// ==========================================
+// EVENT DELEGATION: GUARDADO DE UBICACIONES
+// ==========================================
+
+document.body.addEventListener('click', async (e) => {
+    
+    // 1. Guardar País
+    if (e.target && e.target.id === 'btn-guardar-pais') {
+        if (e.target.textContent === 'Guardar Cambios') return; 
+        
+        const data = {
+            nombre: document.getElementById('pais-nombre').value,
+            codigo: document.getElementById('pais-codigo').value
+        };
+        try {
+            await fetch('http://localhost:3000/api/paises', { 
+                method: 'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body: JSON.stringify(data)
+            });
+            bootstrap.Modal.getInstance(document.getElementById('modalPais')).hide();
+            cargarUbicacionesDesdeBD();
+        } catch (error) { console.error("Error guardando país:", error); }
+    }
+
+    // 2. Guardar Departamento
+    if (e.target && e.target.id === 'btn-guardar-depto') {
+        if (e.target.textContent === 'Guardar Cambios') return;
+        
+        const data = {
+            id_pais: document.getElementById('depto-pais').value,
+            nombre: document.getElementById('depto-nombre').value
+        };
+        try {
+            await fetch('http://localhost:3000/api/departamentos', { 
+                method: 'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body: JSON.stringify(data)
+            });
+            bootstrap.Modal.getInstance(document.getElementById('modalDepto')).hide();
+            cargarUbicacionesDesdeBD();
+        } catch (error) { console.error("Error guardando depto:", error); }
+    }
+
+    // 3. Guardar Ciudad
+    if (e.target && e.target.id === 'btn-guardar-ciudad') {
+        if (e.target.textContent === 'Guardar Cambios') return;
+        
+        const data = {
+            id_departamento: document.getElementById('ciudad-depto').value,
+            nombre: document.getElementById('ciudad-nombre').value
+        };
+        try {
+            await fetch('http://localhost:3000/api/ciudades', { 
+                method: 'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body: JSON.stringify(data)
+            });
+            bootstrap.Modal.getInstance(document.getElementById('modalCiudad')).hide();
+            cargarUbicacionesDesdeBD();
+        } catch (error) { console.error("Error guardando ciudad:", error); }
+    }
+});
+
+// ==========================================
+// FUNCIONES INTERACTIVAS DE EDICIÓN Y BORRADO
+// ==========================================
+
+// --- PAÍSES ---
+window.abrirModalEditarPais = function(id) {
+    const p = globalPaises.find(item => item.id_pais === id);
+    if (!p) return;
+    document.getElementById('pais-nombre').value = p.nombre;
+    document.getElementById('pais-codigo').value = p.codigo || '';
+    
+    const btn = document.getElementById('btn-guardar-pais');
+    btn.textContent = 'Guardar Cambios';
+    btn.onclick = async () => {
+        const payload = { nombre: document.getElementById('pais-nombre').value, codigo: document.getElementById('pais-codigo').value };
+        await fetch(`http://localhost:3000/api/paises/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        bootstrap.Modal.getInstance(document.getElementById('modalPais')).hide();
+        cargarUbicacionesDesdeBD();
+    };
+    new bootstrap.Modal(document.getElementById('modalPais')).show();
+};
+
+window.eliminarPais = async function(id) {
+    if (confirm("¿Seguro que deseas eliminar este país? Al hacerlo se borrarán todos sus departamentos y ciudades asociadas.")) {
+        await fetch(`http://localhost:3000/api/paises/${id}`, { method: 'DELETE' });
+        cargarUbicacionesDesdeBD();
+    }
+};
+
+// --- DEPARTAMENTOS ---
+window.abrirModalEditarDepto = function(id) {
+    const d = globalDeptos.find(item => item.id_departamento === id);
+    if (!d) return;
+    
+    abrirModalDepto(d.id_pais); // Inicializa y llena el select de países
+    document.getElementById('depto-nombre').value = d.nombre;
+    
+    const btn = document.getElementById('btn-guardar-depto');
+    btn.textContent = 'Guardar Cambios';
+    btn.onclick = async () => {
+        const payload = { id_pais: document.getElementById('depto-pais').value, nombre: document.getElementById('depto-nombre').value };
+        await fetch(`http://localhost:3000/api/departamentos/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        bootstrap.Modal.getInstance(document.getElementById('modalDepto')).hide();
+        cargarUbicacionesDesdeBD();
+    };
+};
+
+window.eliminarDepto = async function(id) {
+    if (confirm("¿Seguro que deseas eliminar este departamento? Se perderán todas sus ciudades.")) {
+        await fetch(`http://localhost:3000/api/departamentos/${id}`, { method: 'DELETE' });
+        cargarUbicacionesDesdeBD();
+    }
+};
+
+// --- CIUDADES ---
+window.abrirModalEditarCiudad = function(id) {
+    const c = globalCiudades.find(item => item.id_ciudad === id);
+    if (!c) return;
+    
+    // Encontrar qué departamento y país le pertenecen para pre-cargar los selects anidados
+    const depto = globalDeptos.find(d => d.id_departamento === c.id_departamento);
+    
+    abrirModalCiudad(depto.id_pais, c.id_departamento);
+    document.getElementById('ciudad-nombre').value = c.nombre;
+    
+    const btn = document.getElementById('btn-guardar-ciudad');
+    btn.textContent = 'Guardar Cambios';
+    btn.onclick = async () => {
+        const payload = { id_departamento: document.getElementById('ciudad-depto').value, nombre: document.getElementById('ciudad-nombre').value };
+        await fetch(`http://localhost:3000/api/ciudades/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        bootstrap.Modal.getInstance(document.getElementById('modalCiudad')).hide();
+        cargarUbicacionesDesdeBD();
+    };
+};
+
+window.eliminarCiudad = async function(id) {
+    if (confirm("¿Seguro que deseas eliminar esta ciudad?")) {
+        await fetch(`http://localhost:3000/api/ciudades/${id}`, { method: 'DELETE' });
+        cargarUbicacionesDesdeBD();
+    }
+};
