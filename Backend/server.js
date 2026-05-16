@@ -423,6 +423,112 @@ app.put('/api/usuarios/:id', async (req, res) => {
 });
 
 // ==========================================
+// RUTAS PARA GESTIÓN DE UBICACIONES
+// ==========================================
+
+// Obtener toda la jerarquía de un golpe
+app.get('/api/ubicaciones', async (req, res) => {
+    try {
+        const paises = await pool.query('SELECT * FROM paises ORDER BY nombre');
+        const departamentos = await pool.query('SELECT * FROM departamentos ORDER BY nombre');
+        const ciudades = await pool.query('SELECT * FROM ciudades ORDER BY nombre');
+        
+        res.json({
+            paises: paises.rows,
+            departamentos: departamentos.rows,
+            ciudades: ciudades.rows
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Error obteniendo ubicaciones" });
+    }
+});
+
+// Crear País
+app.post('/api/paises', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO paises (nombre, codigo) VALUES ($1, $2)', [req.body.nombre, req.body.codigo]);
+        res.json({ message: 'País creado' });
+    } catch (e) { res.status(500).json({ error: "Error" }); }
+});
+
+// Crear Departamento
+app.post('/api/departamentos', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO departamentos (nombre, id_pais) VALUES ($1, $2)', [req.body.nombre, req.body.id_pais]);
+        res.json({ message: 'Departamento creado' });
+    } catch (e) { res.status(500).json({ error: "Error" }); }
+});
+
+// Crear Ciudad
+app.post('/api/ciudades', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO ciudades (nombre, id_departamento) VALUES ($1, $2)', [req.body.nombre, req.body.id_departamento]);
+        res.json({ message: 'Ciudad creada' });
+    } catch (e) { res.status(500).json({ error: "Error" }); }
+});
+
+// ==========================================
+// CRUD EXPANDIDO: UBICACIONES
+// ==========================================
+
+// EDITAR: País
+app.put('/api/paises/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, codigo } = req.body;
+        await pool.query('UPDATE paises SET nombre = $1, codigo = $2 WHERE id_pais = $3', [nombre, codigo, id]);
+        res.json({ message: 'País actualizado' });
+    } catch (e) { res.status(500).json({ error: "Error" }); }
+});
+
+// ELIMINAR: País (Por cascada borrará sus deptos y ciudades)
+app.delete('/api/paises/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM paises WHERE id_pais = $1', [id]);
+        res.json({ message: 'País eliminado' });
+    } catch (e) { res.status(500).json({ error: "Error" }); }
+});
+
+// EDITAR: Departamento
+app.put('/api/departamentos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, id_pais } = req.body;
+        await pool.query('UPDATE departamentos SET nombre = $1, id_pais = $2 WHERE id_departamento = $3', [nombre, id_pais, id]);
+        res.json({ message: 'Departamento actualizado' });
+    } catch (e) { res.status(500).json({ error: "Error" }); }
+});
+
+// ELIMINAR: Departamento
+app.delete('/api/departamentos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM departamentos WHERE id_departamento = $1', [id]);
+        res.json({ message: 'Departamento eliminado' });
+    } catch (e) { res.status(500).json({ error: "Error" }); }
+});
+
+// EDITAR: Ciudad
+app.put('/api/ciudades/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, id_departamento } = req.body;
+        await pool.query('UPDATE ciudades SET nombre = $1, id_departamento = $2 WHERE id_ciudad = $3', [nombre, id_departamento, id]);
+        res.json({ message: 'Ciudad actualizada' });
+    } catch (e) { res.status(500).json({ error: "Error" }); }
+});
+
+// ELIMINAR: Ciudad
+app.delete('/api/ciudades/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM ciudades WHERE id_ciudad = $1', [id]);
+        res.json({ message: 'Ciudad eliminada' });
+    } catch (e) { res.status(500).json({ error: "Error" }); }
+});
+
+// ==========================================
 // INICIAR EL SERVIDOR
 // ==========================================
 const PORT = 3000;

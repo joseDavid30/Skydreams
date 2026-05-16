@@ -525,3 +525,50 @@ small {
     transition: color 0.2s;
 }
 .btn-texto-desactivar:hover { color: #dc3545; }
+
+/* =========================================
+   ESTILOS MÓDULO DE UBICACIONES
+   ========================================= */
+
+.ubi-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+.ubi-item:hover { background-color: #f8fafc; }
+.ubi-item:last-child { border-bottom: none; }
+
+.ubi-chevron {
+    transition: transform 0.3s ease;
+    color: #64748b;
+}
+.ubi-chevron.open { transform: rotate(90deg); }
+
+.ubi-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.depto-container {
+    padding-left: 3rem; /* Sangría para departamentos */
+    background-color: #fafaf9;
+    border-bottom: 1px solid #f1f5f9;
+}
+.ciudad-container {
+    padding-left: 6rem; /* Sangría para ciudades */
+    background-color: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.btn-add-nested {
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.btn-add-nested:hover { border-color: #cbd5e1; background-color: #f8fafc; }
