@@ -41,13 +41,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     cargarVuelosDesdeBD();
                 } else if (page === 'reservas') { 
                     cargarReservasDesdeBD();
-                } else if (page === 'boletos') { 
+                } else if (page === 'boletos') {
                     cargarBoletosDesdeBD();
-                } else if (page === 'paquetes') { 
+                } else if (page === 'paquetes') {
                     cargarPaquetesDesdeBD();
-                }else if (page === 'clientes') { 
-                    cargarClientesDesdeBD(); }
+                } else if (page === 'clientes') { 
+                    cargarClientesDesdeBD(); 
+                } else if (page === 'usuarios') {
+                    cargarUsuariosDesdeBD();
+                } 
             } else {
+                // Esto se ejecuta si el archivo HTML no existe (ej. error 404)
                 mostrarConstruccion(title);
             }
         } catch (error) {
@@ -55,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
             mostrarConstruccion(title);
         }
     }
-
     // Genera el HTML de construcción dinámicamente
     function mostrarConstruccion(title) {
         mainContent.innerHTML = `
@@ -938,6 +941,183 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error("Error guardando cliente:", error);
+            }
+        }
+    });
+});
+// ==============================================================
+// MÓDULO DE USUARIOS Y ROLES
+// ==============================================================
+
+let listaUsuariosGlobal = [];
+
+async function cargarUsuariosDesdeBD() {
+    try {
+        const respuesta = await fetch('http://localhost:3000/api/usuarios');
+        const usuarios = await respuesta.json();
+        listaUsuariosGlobal = usuarios;
+
+        const tbody = document.getElementById('tbody-usuarios');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        // Contadores para las tarjetas superiores
+        let cAdmins = 0, cAgentes = 0, cClientes = 0;
+
+        usuarios.forEach(user => {
+            // Conteo
+            if (user.tipo_rol === 'Administrador') cAdmins++;
+            else if (user.tipo_rol === 'Agente') cAgentes++;
+            else if (user.tipo_rol === 'Cliente') cClientes++;
+
+            // Configuración visual
+            const numId = `#${user.id_usuario}`;
+            const clienteAsc = user.id_cliente ? `<a href="#" class="text-orange-link">CLI${String(user.id_cliente).padStart(3, '0')}</a>` : '<span class="text-muted">—</span>';
+            const estadoBadge = user.estado === 'Activo' ? '<span class="badge badge-activo">Activo</span>' : '<span class="badge badge-inactivo">Inactivo</span>';
+            const btnEstadoTxt = user.estado === 'Activo' ? 'Desactivar' : 'Activar';
+            
+            let rolHtml = '';
+            let iconHtml = '';
+            
+            // Añadimos 'text-nowrap' directamente al badge para blindarlo
+            if (user.tipo_rol === 'Administrador') {
+                rolHtml = `<span class="badge-rol-admin text-nowrap"><i class="bi bi-shield me-1"></i> Administrador</span>`;
+                iconHtml = `<div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;"><i class="bi bi-person-gear"></i></div>`;
+            } else if (user.tipo_rol === 'Agente') {
+                rolHtml = `<span class="badge-rol-agente text-nowrap"><i class="bi bi-person-gear me-1"></i> Agente</span>`;
+                iconHtml = `<div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;"><i class="bi bi-person-gear"></i></div>`;
+            } else {
+                rolHtml = `<span class="badge-rol-cliente text-nowrap"><i class="bi bi-person me-1"></i> Cliente</span>`;
+                iconHtml = `<div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;"><i class="bi bi-person"></i></div>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="ps-4 py-3 fw-bold text-dark align-middle">${numId}</td>
+                <td class="py-3 text-dark align-middle">
+                    <div class="d-flex align-items-center gap-2 text-nowrap">
+                        ${iconHtml}
+                        <span class="fw-medium">${user.username}</span>
+                    </div>
+                </td>
+                <td class="py-3 text-muted align-middle">${user.email || '—'}</td>
+                <td class="py-3 align-middle">${rolHtml}</td>
+                <td class="py-3 text-center align-middle">${clienteAsc}</td>
+                <td class="py-3 text-center align-middle">${estadoBadge}</td>
+                <td class="pe-4 py-3 text-end align-middle text-nowrap">
+                    <button class="btn-texto-accion me-3" onclick="abrirModalEditarUsuario(${user.id_usuario})">Editar</button>
+                    <button class="btn-texto-desactivar" onclick="cambiarEstadoUsuario(${user.id_usuario}, '${user.estado}')">${btnEstadoTxt}</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Actualizar contadores en la vista
+        document.getElementById('count-admins').textContent = cAdmins;
+        document.getElementById('count-agentes').textContent = cAgentes;
+        document.getElementById('count-clientes').textContent = cClientes;
+
+    } catch (error) {
+        console.error("Error cargando usuarios:", error);
+    }
+}
+
+// 1. Abrir modal para CREAR (Limpia todo)
+window.abrirModalUsuario = function() {
+    document.getElementById('form-usuario').reset();
+    document.getElementById('user-pass').parentElement.style.display = 'block'; // Mostrar campo contraseña
+    
+    const modalTitle = document.querySelector('#modalCrearUsuario .modal-header h5');
+    if (modalTitle) modalTitle.textContent = 'Crear Nuevo Usuario';
+    
+    const btnGuardar = document.getElementById('btn-guardar-usuario');
+    btnGuardar.textContent = 'Crear Usuario';
+    delete btnGuardar.dataset.editId; // Asegurar que no quede ID de edición viejo
+    
+    new bootstrap.Modal(document.getElementById('modalCrearUsuario')).show();
+};
+
+// 2. Abrir modal para EDITAR (Llena campos y adapta diseño)
+window.abrirModalEditarUsuario = function(id_usuario) {
+    const user = listaUsuariosGlobal.find(u => u.id_usuario === id_usuario);
+    if (!user) return;
+
+    // Llenar formulario
+    document.getElementById('user-username').value = user.username;
+    document.getElementById('user-email').value = user.email || '';
+    document.getElementById('user-rol').value = user.tipo_rol;
+    document.getElementById('user-cliente-id').value = user.id_cliente || '';
+    
+    // Ocultar campo de contraseña
+    document.getElementById('user-pass').parentElement.style.display = 'none';
+
+    // Adaptar textos del modal
+    const modalTitle = document.querySelector('#modalCrearUsuario .modal-header h5');
+    if (modalTitle) modalTitle.textContent = 'Editar Usuario';
+    
+    const btnGuardar = document.getElementById('btn-guardar-usuario');
+    btnGuardar.textContent = 'Guardar Cambios';
+    btnGuardar.dataset.editId = id_usuario; // Guardamos el ID temporalmente para saber a quién editamos
+
+    new bootstrap.Modal(document.getElementById('modalCrearUsuario')).show();
+};
+
+// 3. Cambiar estado (Activar/Desactivar)
+window.cambiarEstadoUsuario = async function(id_usuario, estadoActual) {
+    const nuevoEstado = estadoActual === 'Activo' ? 'Inactivo' : 'Activo';
+    if(confirm(`¿Deseas ${nuevoEstado === 'Inactivo' ? 'desactivar' : 'activar'} este usuario?`)) {
+        try {
+            const response = await fetch(`http://localhost:3000/api/usuarios/${id_usuario}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: nuevoEstado })
+            });
+            if (response.ok) cargarUsuariosDesdeBD();
+        } catch (error) { console.error(error); }
+    }
+};
+
+// 4. Guardar (Detecta automáticamente si es Crear o Editar)
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.addEventListener('click', async (e) => {
+        if (e.target && e.target.id === 'btn-guardar-usuario') {
+            
+            const editId = e.target.dataset.editId; // ¿Hay un ID guardado en el botón?
+            
+            const datosUsuario = {
+                username: document.getElementById('user-username').value,
+                email: document.getElementById('user-email').value,
+                tipo_rol: document.getElementById('user-rol').value,
+                id_cliente: document.getElementById('user-cliente-id').value || null
+            };
+
+            let url = 'http://localhost:3000/api/usuarios';
+            let method = 'POST';
+
+            // Si hay editId, hacemos UPDATE. Si no, hacemos INSERT y agregamos contraseña.
+            if (editId) {
+                url = `http://localhost:3000/api/usuarios/${editId}`;
+                method = 'PUT';
+            } else {
+                datosUsuario.contrasena = document.getElementById('user-pass').value;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosUsuario)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalCrearUsuario')).hide();
+                    delete e.target.dataset.editId; // Limpiamos el ID del botón
+                    cargarUsuariosDesdeBD();
+                } else {
+                    alert("Error: Verifica que los datos sean correctos y el username no esté repetido.");
+                }
+            } catch (error) {
+                console.error("Error procesando usuario:", error);
             }
         }
     });

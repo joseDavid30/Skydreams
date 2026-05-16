@@ -349,6 +349,80 @@ app.get('/api/clientes/:id/reservas', async (req, res) => {
 });
 
 // ==========================================
+// RUTAS PARA USUARIOS Y ROLES
+// ==========================================
+
+// Obtener todos los usuarios con sus roles
+app.get('/api/usuarios', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                u.id_usuario,
+                u.username,
+                u.email,
+                u.estado,
+                u.id_cliente,
+                r.tipo_rol
+            FROM usuarios u
+            JOIN roles r ON u.id_rol = r.id_rol
+            ORDER BY u.id_usuario ASC;
+        `;
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error obteniendo usuarios:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
+
+// Crear un nuevo usuario
+app.post('/api/usuarios', async (req, res) => {
+    try {
+        const { username, email, contrasena, tipo_rol, id_cliente } = req.body;
+        
+        // Buscar el ID del rol
+        const rolResult = await pool.query('SELECT id_rol FROM roles WHERE tipo_rol = $1', [tipo_rol]);
+        const id_rol = rolResult.rows[0].id_rol;
+
+        // 🛡️ EL BLINDAJE: Si viene vacío, nulo, o es un "0", lo forzamos a ser NULL
+        const cliente_id = (id_cliente && id_cliente !== "0" && id_cliente !== 0) ? id_cliente : null;
+
+        await pool.query(
+            'INSERT INTO usuarios (username, email, contrasena, id_rol, id_cliente) VALUES ($1, $2, $3, $4, $5)',
+            [username, email, contrasena, id_rol, cliente_id]
+        );
+        res.json({ message: 'Usuario creado' });
+    } catch (error) {
+        console.error("Error creando usuario:", error);
+        res.status(500).json({ error: "Error interno" });
+    }
+});
+
+// Actualizar datos de un usuario
+app.put('/api/usuarios/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { username, email, tipo_rol, id_cliente } = req.body;
+        
+        // Buscar el ID del rol
+        const rolResult = await pool.query('SELECT id_rol FROM roles WHERE tipo_rol = $1', [tipo_rol]);
+        const id_rol = rolResult.rows[0].id_rol;
+
+        // 🛡️ EL BLINDAJE: También lo aplicamos al editar
+        const cliente_id = (id_cliente && id_cliente !== "0" && id_cliente !== 0) ? id_cliente : null;
+
+        await pool.query(
+            'UPDATE usuarios SET username = $1, email = $2, id_rol = $3, id_cliente = $4 WHERE id_usuario = $5',
+            [username, email, id_rol, cliente_id, id]
+        );
+        res.json({ message: 'Usuario actualizado' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error al editar usuario" });
+    }
+});
+
+// ==========================================
 // INICIAR EL SERVIDOR
 // ==========================================
 const PORT = 3000;
