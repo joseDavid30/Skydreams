@@ -252,35 +252,39 @@
 
     </section>
 
-    <script>
-
-        const usuarioCorrecto = "viajero@skydreams.com";
-        const contraseñaCorrecta = "SkyDreams2026";
-
+<script>
         const formulario = document.getElementById("loginForm");
 
-        formulario.addEventListener("submit", function (event) {
-
+        formulario.addEventListener("submit", async function (event) {
             event.preventDefault();
 
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
-            if (email === usuarioCorrecto && password === contraseñaCorrecta) {
+            try {
+                // Consultamos la base de datos real
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
 
-                localStorage.setItem("usuarioLogueado", "true");
-                localStorage.setItem("nombreUsuario", "Juan SkyDreams");
+                const data = await response.json();
 
-                window.location.href = "../index.html";
-
-            } else {
-
-                document.getElementById("errorMessage").style.display = "block";
-
+                if (data.success) {
+                    // Si coincide, guardamos sesión y volvemos al Home
+                    localStorage.setItem("usuarioLogueado", "true");
+                    localStorage.setItem("nombreUsuario", data.user.username);
+                    window.location.href = "../index.html";
+                } else {
+                    // Mostramos la alerta de error si no coincide
+                    document.getElementById("errorMessage").style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error conectando al backend:", error);
+                alert("Error de conexión con el servidor");
             }
-
         });
-
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -288,49 +292,6 @@
 </body>
 
 </html>
-
-
-<div class="d-flex ms-auto align-items-center flex-shrink-0 gap-2">
-
-    <a href="pages/login.html" class="btn btn-outline-light rounded-pill px-3 d-flex align-items-center"
-        style="white-space: nowrap;">
-
-        Iniciar Sesión
-
-    </a>
-
-    <a href="pages/registro.html"
-        class="btn btn-warning text-dark rounded-pill px-3 fw-semibold d-flex align-items-center"
-        style="white-space: nowrap;">
-
-        Registrarse
-
-    </a>
-
-</div>
-
-
-
-
-<div class="d-flex ms-auto align-items-center flex-shrink-0 gap-2" id="navbar-user-area">
-
-    <a href="pages/login.html" class="btn btn-outline-light rounded-pill px-3 d-flex align-items-center"
-        style="white-space: nowrap;">
-
-        Iniciar Sesión
-
-    </a>
-
-    <a href="pages/registro.html"
-        class="btn btn-warning text-dark rounded-pill px-3 fw-semibold d-flex align-items-center"
-        style="white-space: nowrap;">
-
-        Registrarse
-
-    </a>
-
-</div>
-
 
 <script>
 
