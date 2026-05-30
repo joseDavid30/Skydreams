@@ -529,6 +529,120 @@ app.delete('/api/ciudades/:id', async (req, res) => {
 });
 
 // ==========================================
+// RUTAS DE AUTENTICACIÓN Y REGISTRO (APP WEB)
+// ==========================================
+
+// Ruta para Registrarse
+app.post('/api/registro', async (req, res) => {
+    try {
+        const { nombres, apellidos, correo, telefono, password } = req.body;
+        
+        // 1. Insertamos al cliente y le pedimos a PostgreSQL que nos devuelva el ID asignado
+        const resultCliente = await pool.query(
+            'INSERT INTO clientes (nombres, apellidos, correo, telefono) VALUES ($1, $2, $3, $4) RETURNING id_cliente',
+            [nombres, apellidos, correo, telefono]
+        );
+        const id_cliente = resultCliente.rows[0].id_cliente;
+
+        // 2. Insertamos al usuario asociado (Rol 3 = Cliente)
+        await pool.query(
+            'INSERT INTO usuarios (username, email, contrasena, id_rol, id_cliente) VALUES ($1, $2, $3, 3, $4)',
+            [correo, correo, password, id_cliente] // Usamos el correo como username por defecto
+        );
+        
+        res.json({ message: 'Registro exitoso' });
+    } catch (error) {
+        console.error("Error en registro:", error);
+        res.status(500).json({ error: "Error guardando en la base de datos" });
+    }
+});
+
+// Ruta para Iniciar Sesión
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        // Buscamos si existe un usuario con ese correo y contraseña
+        const result = await pool.query(
+            'SELECT * FROM usuarios WHERE email = $1 AND contrasena = $2', 
+            [email, password]
+        );
+        
+        if (result.rows.length > 0) {
+            res.json({ success: true, user: result.rows[0] });
+        } else {
+            res.status(401).json({ success: false, message: "Credenciales incorrectas" });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error en el servidor" });
+    }
+});
+
+// ==========================================
+// RUTA PARA EL BUSCADOR DE VUELOS (FRONTEND)
+// ==========================================
+app.get('/api/vuelos/buscar', async (req, res) => {
+    try {
+        const { origen, destino, fecha_ida } = req.query;
+
+        // Buscamos vuelos que coincidan exactamente con las ciudades y la fecha solicitada
+        const query = `
+            SELECT v.*, co.nombre AS ciudad_origen, cd.nombre AS ciudad_destino
+            FROM vuelos v
+            JOIN ciudades co ON v.id_ciudad_origen = co.id_ciudad
+            JOIN ciudades cd ON v.id_ciudad_destino = cd.id_ciudad
+            WHERE co.nombre = $1 AND cd.nombre = $2 AND DATE(v.fecha_hora_salida) = $3
+            ORDER BY v.fecha_hora_salida ASC
+        `;
+        
+        const result = await pool.query(query, [origen, destino, fecha_ida]);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error buscando vuelos:", error);
+        res.status(500).json({ error: "Error interno al buscar vuelos" });
+    }
+});
+
+// ==========================================
+// RUTA PARA CREAR LA RESERVA REAL
+// ==========================================
+app.post('/api/reservas/crear', async (req, res) => {
+    try {
+        const { email, id_vuelo, valor_total, pasajeros, clase } = req.body;
+
+        // 1. Buscamos quién es el cliente basándonos en su correo de sesión
+        const userRes = await pool.query('SELECT id_cliente, id_usuario FROM usuarios WHERE email = $1', [email]);
+        if (userRes.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+        
+        const { id_cliente, id_usuario } = userRes.rows[0];
+
+        // 2. Creamos la reserva en la base de datos
+        const reservaRes = await pool.query(
+            'INSERT INTO reservas (valor_total, estado, id_cliente, id_usuario, id_vuelo) VALUES ($1, $2, $3, $4, $5) RETURNING id_reserva',
+            [valor_total, 'Confirmada', id_cliente, id_usuario, id_vuelo]
+        );
+        const id_reserva = reservaRes.rows[0].id_reserva;
+
+        // 3. Generamos los tiquetes automáticamente según el número de pasajeros
+        const precioPorPasajero = valor_total / pasajeros;
+        for (let i = 0; i < pasajeros; i++) {
+            // Genera un asiento aleatorio (Ej: 14B, 5A, etc.)
+            const asiento = `${Math.floor(Math.random() * 30) + 1}${['A','B','C','D','E','F'][Math.floor(Math.random() * 6)]}`;
+            
+            await pool.query(
+                'INSERT INTO tiquetes (clase, num_asiento, precio_final, id_reserva, id_vuelo) VALUES ($1, $2, $3, $4, $5)',
+                [clase, asiento, precioPorPasajero, id_reserva, id_vuelo]
+            );
+        }
+
+        res.json({ success: true, mensaje: 'Reserva guardada en la base de datos' });
+    } catch (error) {
+        console.error("Error al guardar reserva:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+// ==========================================
 // INICIAR EL SERVIDOR
 // ==========================================
 const PORT = 3000;
