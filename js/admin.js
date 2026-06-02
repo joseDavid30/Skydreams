@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', async (e) => {
             e.preventDefault();
             
-            // Cambiamos visualmente el menú activo
             links.forEach(l => l.classList.remove('active-menu'));
             link.classList.add('active-menu');
 
@@ -20,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-// Función asíncrona para cargar los HTML externos desde vistas_admin
     async function cargarVista(page, title) {
         try {
             let nombreArchivo = page;
@@ -34,9 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const html = await respuesta.text();
                 mainContent.innerHTML = html;
 
-                // Disparamos la lógica correspondiente
                 if (page === 'dashboard') {
-                    initCharts(); 
+                    cargarDashboardDesdeBD(); 
                 } else if (page === 'vuelos') {
                     cargarVuelosDesdeBD();
                 } else if (page === 'reservas') { 
@@ -50,9 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (page === 'usuarios') {
                     cargarUsuariosDesdeBD();
                 } else if (page === 'ubicaciones') { 
-                    cargarUbicacionesDesdeBD(); }
+                    cargarUbicacionesDesdeBD(); 
+                }else if (page === 'reportes') {
+                    cargarReportesDesdeBD();
+                }
             } else {
-                // Esto se ejecuta si el archivo HTML no existe (ej. error 404)
                 mostrarConstruccion(title);
             }
         } catch (error) {
@@ -60,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mostrarConstruccion(title);
         }
     }
-    // Genera el HTML de construcción dinámicamente
+
     function mostrarConstruccion(title) {
         mainContent.innerHTML = `
             <div class="mb-4">
@@ -71,40 +70,125 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="icon-box bg-warning-subtle text-warning mx-auto mb-4 d-flex align-items-center justify-content-center rounded-3" style="width: 80px; height: 80px;">
                     <i class="bi bi-tools fs-1"></i>
                 </div>
-                <h4>Módulo en construcción</h4>
+                <h4 class="mb-2">Módulo en construcción</h4>
                 <p class="text-muted">El archivo vistas_admin/${title.toLowerCase()}.html aún no existe.</p>
             </div>
         `;
     }
+    
+// (Reemplaza la función initCharts y su llamado en cargarVista por esto)
+    async function cargarDashboardDesdeBD() {
+        try {
+            const res = await fetch('http://localhost:3000/api/dashboard/stats');
+            const data = await res.json();
 
-    // Función para inicializar los gráficos del Dashboard
-    function initCharts() {
-        const resCanvas = document.getElementById('reservasChart');
-        if(resCanvas && Chart.getChart(resCanvas) === undefined) {
-            new Chart(resCanvas, {
-                type: 'bar',
-                data: {
-                    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-                    datasets: [{ data: [12, 19, 15, 22, 28, 36, 31], backgroundColor: '#de7b0aea', borderRadius: 8, barThickness: 25 }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { borderDash: [5, 5] } }, x: { grid: { display: false } } } }
-            });
-        }
+            // 1. Llenar KPIs
+            document.getElementById('kpi-vuelos-hoy').textContent = data.kpis.vuelosHoy;
+            document.getElementById('kpi-reservas-activas').textContent = data.kpis.reservasActivas;
+            document.getElementById('kpi-ingresos-hoy').textContent = '$' + data.kpis.ingresosHoy.toLocaleString('es-ES');
+            document.getElementById('kpi-boletos').textContent = data.kpis.boletosVendidos;
+            document.getElementById('kpi-asientos').textContent = data.kpis.asientosDisponibles;
+            document.getElementById('kpi-paquetes').textContent = data.kpis.paquetesActivos;
 
-        const ingCanvas = document.getElementById('ingresosChart');
-        if(ingCanvas && Chart.getChart(ingCanvas) === undefined) {
-            new Chart(ingCanvas, {
-                type: 'line',
-                data: {
-                    labels: ['Sep', 'Oct', 'Nov', 'Dic', 'Ene', 'Feb', 'Mar'],
-                    datasets: [{ data: [125000, 142000, 138000, 168000, 152000, 175000, 195000], borderColor: '#de7b0aea', backgroundColor: 'rgba(222, 123, 10, 0.1)', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff', borderWidth: 3 }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { borderDash: [5, 5] } }, x: { grid: { display: false } } } }
+            // 2. Llenar Top Destinos
+            const contenedorDestinos = document.getElementById('lista-destinos-top');
+            contenedorDestinos.innerHTML = '';
+            if(data.destinosTop.length === 0) contenedorDestinos.innerHTML = '<p class="text-muted">No hay datos suficientes.</p>';
+            
+            // Calculamos el máximo para sacar el porcentaje de la barra de progreso
+            const maxReservas = data.destinosTop.length > 0 ? parseInt(data.destinosTop[0].total_reservas) : 1;
+
+            data.destinosTop.forEach(dest => {
+                const porcentaje = (parseInt(dest.total_reservas) / maxReservas) * 100;
+                contenedorDestinos.innerHTML += `
+                    <div class="destino-item d-flex align-items-center gap-3">
+                        <span class="destino-nombre">${dest.destino}</span>
+                        <div class="progress flex-grow-1">
+                            <div class="progress-bar" role="progressbar" style="width: ${porcentaje}%"></div>
+                        </div>
+                        <span class="destino-valor">${dest.total_reservas}</span>
+                    </div>
+                `;
             });
+
+            // 3. Llenar Actividad Reciente
+            const contenedorActividad = document.getElementById('lista-actividad-reciente');
+            contenedorActividad.innerHTML = '';
+            if(data.actividadReciente.length === 0) contenedorActividad.innerHTML = '<p class="text-muted">No hay actividad reciente.</p>';
+
+            data.actividadReciente.forEach(act => {
+                const fecha = new Date(act.fecha_cambio);
+                const idRes = 'RES' + String(act.id_reserva).padStart(3, '0');
+                
+                let iconClass = 'icon-info';
+                let iconBi = 'bi-arrow-repeat';
+                let mensaje = `Cambió a estado: ${act.nombre_estado}`;
+
+                if (act.nombre_estado === 'Reservada' || act.nombre_estado === 'Confirmada') {
+                    iconClass = 'icon-positive'; iconBi = 'bi-calendar-check';
+                    mensaje = `Nueva reserva registrada hacia ${act.ciudad_destino}`;
+                } else if (act.nombre_estado === 'Cancelada' || act.nombre_estado === 'Expirada') {
+                    iconClass = 'icon-negative'; iconBi = 'bi-calendar-x';
+                    mensaje = `Reserva cancelada hacia ${act.ciudad_destino}`;
+                }
+
+                contenedorActividad.innerHTML += `
+                    <div class="actividad-item d-flex gap-3">
+                        <div class="actividad-icon ${iconClass}">
+                            <i class="bi ${iconBi}"></i>
+                        </div>
+                        <div class="actividad-texto">
+                            <h6 class="mb-1 fw-bold">${act.nombre_estado}</h6>
+                            <p class="mb-1">${idRes} - ${act.nombres} ${act.apellidos} | Vuelo ${act.cod_vuelo}</p>
+                            <span class="tiempo">${fecha.toLocaleString('es-ES')}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 4. Inicializar Chart.js con datos reales
+            const etiquetasMesesRes = data.graficos.reservas.map(g => g.mes);
+            const datosRes = data.graficos.reservas.map(g => g.total);
+            
+            const resCanvas = document.getElementById('reservasChart');
+            if(resCanvas) {
+                // Destruir gráfico anterior si existe para evitar superposiciones
+                let chartExistente = Chart.getChart(resCanvas);
+                if (chartExistente) chartExistente.destroy();
+
+                new Chart(resCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: etiquetasMesesRes.length > 0 ? etiquetasMesesRes : ['Sin datos'],
+                        datasets: [{ data: datosRes.length > 0 ? datosRes : [0], backgroundColor: '#de7b0aea', borderRadius: 8, barThickness: 25 }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { borderDash: [5, 5] } }, x: { grid: { display: false } } } }
+                });
+            }
+
+            const etiquetasMesesIng = data.graficos.ingresos.map(g => g.mes);
+            const datosIng = data.graficos.ingresos.map(g => g.total);
+
+            const ingCanvas = document.getElementById('ingresosChart');
+            if(ingCanvas) {
+                let chartExistente2 = Chart.getChart(ingCanvas);
+                if (chartExistente2) chartExistente2.destroy();
+
+                new Chart(ingCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: etiquetasMesesIng.length > 0 ? etiquetasMesesIng : ['Sin datos'],
+                        datasets: [{ data: datosIng.length > 0 ? datosIng : [0], borderColor: '#de7b0aea', backgroundColor: 'rgba(222, 123, 10, 0.1)', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff', borderWidth: 3 }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { borderDash: [5, 5] } }, x: { grid: { display: false } } } }
+                });
+            }
+
+        } catch (error) {
+            console.error("Error al cargar el dashboard:", error);
         }
     }
 
-    // Carga inicial al abrir la página
     cargarVista('dashboard', 'Panel Principal');
 });
 
@@ -150,7 +234,7 @@ async function cargarVuelosDesdeBD() {
         listaVuelosGlobal = vuelos;
 
         const tbody = document.querySelector('#seccion-vuelos tbody');
-        if (!tbody) return; // Si la tabla no se ha cargado en el DOM, evitamos errores
+        if (!tbody) return; 
         
         tbody.innerHTML = ''; 
         
@@ -303,7 +387,7 @@ async function eliminarVuelo(id) {
 // ==========================================
 // 4. FUNCIÓN DE PRUEBA: Autocompletar formulario
 // ==========================================
-function llenarDatosDePrueba() {
+window.llenarDatosDePrueba = function() {
     const letras = ['AA', 'LA', 'IB', 'AV', 'DL'];
     const codigoRandom = letras[Math.floor(Math.random() * letras.length)] + Math.floor(Math.random() * 900 + 100);
     
@@ -331,10 +415,10 @@ function llenarDatosDePrueba() {
     document.getElementById('in-precio').value = Math.floor(Math.random() * 1500 + 300);
     document.getElementById('in-capacidad').value = Math.floor(Math.random() * 200 + 150);
     document.getElementById('in-estado').value = 'Programado';
-}
+};
 
 // ==============================================================
-// MÓDULO DE RESERVAS (Conexión a BD Real)
+// MÓDULO DE RESERVAS
 // ==============================================================
 
 let listaReservasGlobal = [];
@@ -344,7 +428,7 @@ async function cargarReservasDesdeBD() {
         const respuesta = await fetch('http://localhost:3000/api/reservas');
         const reservas = await respuesta.json();
         
-        listaReservasGlobal = reservas; // Guardamos globalmente para el modal
+        listaReservasGlobal = reservas; 
 
         const tbody = document.getElementById('tbody-reservas');
         if (!tbody) return;
@@ -357,14 +441,13 @@ async function cargarReservasDesdeBD() {
         }
 
         reservas.forEach(reserva => {
-            // Formatear datos para que se vean igual al diseño
             const idFormateado = 'RES' + String(reserva.id_reserva).padStart(3, '0');
             const vueloFormat = `${reserva.cod_vuelo} - ${reserva.origen} a ${reserva.destino}`;
             
             const fechaObj = new Date(reserva.fecha_hora_reserva);
             const fechaCorto = fechaObj.toLocaleDateString('es-ES');
             
-            let claseBadge = reserva.estado === 'Cancelado' ? 'badge-cancelado' : 'badge-confirmado';
+            let claseBadge = reserva.estado === 'Cancelada' ? 'badge-cancelado' : 'badge-confirmado';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -390,11 +473,9 @@ async function cargarReservasDesdeBD() {
 }
 
 window.abrirModalReserva = function(id_reserva) {
-    // Buscamos la reserva seleccionada en la variable global
     const reserva = listaReservasGlobal.find(r => r.id_reserva === id_reserva);
     if (!reserva) return;
 
-    // Formatear datos
     const idFormateado = 'RES' + String(reserva.id_reserva).padStart(3, '0');
     const vueloFormat = `${reserva.cod_vuelo} - ${reserva.origen} a ${reserva.destino}`;
     
@@ -402,7 +483,6 @@ window.abrirModalReserva = function(id_reserva) {
     const fechaCorto = fechaObj.toLocaleDateString('es-ES');
     const fechaLargo = fechaObj.toLocaleString('es-ES');
 
-    // Llenar Pestaña: Información General
     document.getElementById('modalReservaTitle').textContent = `Detalles de Reserva - ${idFormateado}`;
     document.getElementById('det-vuelo').textContent = vueloFormat;
     document.getElementById('det-fecha').textContent = fechaCorto;
@@ -410,33 +490,23 @@ window.abrirModalReserva = function(id_reserva) {
     document.getElementById('det-boletos').textContent = reserva.numero_boletos;
     document.getElementById('det-paquete').textContent = reserva.paquete_turistico;
     
-    // Configurar el estado visual en el Modal
     const badgeEstado = document.getElementById('det-estado');
     badgeEstado.textContent = reserva.estado;
-    badgeEstado.className = 'badge ' + (reserva.estado === 'Cancelado' ? 'badge-cancelado' : 'badge-confirmado');
+    badgeEstado.className = 'badge ' + (reserva.estado === 'Cancelada' ? 'badge-cancelado' : 'badge-confirmado');
 
-    // Llenar Pestaña: Cliente
     document.getElementById('det-cli-nombre').textContent = reserva.cliente_nombre;
     document.getElementById('det-cli-email').textContent = reserva.cliente_email;
-    document.getElementById('det-cli-tel').textContent = reserva.cliente_telefono;
+    document.getElementById('det-cli-tel').textContent = reserva.cliente_telefono || 'N/A';
 
-    // Llenar Pestaña: Historial
     document.getElementById('hist-fecha-creacion').textContent = fechaLargo;
     document.getElementById('hist-estado-actual').textContent = reserva.estado;
 
-    // ==========================================
-    // CONFIGURAR BOTONES DE EDICIÓN Y BORRADO
-    // ==========================================
-    
-    // 1. Botón Editar (Abre el modal pequeñito)
     const btnEditar = document.getElementById('btn-editar-reserva');
     btnEditar.onclick = () => {
-        // Pre-seleccionar el estado actual en el select
         document.getElementById('select-nuevo-estado').value = reserva.estado;
         const modalEdit = new bootstrap.Modal(document.getElementById('modalEditarEstado'));
         modalEdit.show();
         
-        // Guardar cambios
         document.getElementById('btn-guardar-estado').onclick = async () => {
             const nuevoEstado = document.getElementById('select-nuevo-estado').value;
             try {
@@ -447,10 +517,10 @@ window.abrirModalReserva = function(id_reserva) {
                 });
                 
                 if (response.ok) {
-                    modalEdit.hide(); // Cierra modal chiquito
-                    bootstrap.Modal.getInstance(document.getElementById('modalDetalleReserva')).hide(); // Cierra modal grande
-                    cargarReservasDesdeBD(); // Recarga la tabla
-                    alert("¡Estado actualizado con éxito!");
+                    modalEdit.hide();
+                    bootstrap.Modal.getInstance(document.getElementById('modalDetalleReserva')).hide(); 
+                    cargarReservasDesdeBD();
+                    alert("¡Estado actualizado con éxito y guardado en el historial!");
                 }
             } catch (error) {
                 console.error("Error editando:", error);
@@ -459,29 +529,20 @@ window.abrirModalReserva = function(id_reserva) {
         };
     };
 
-    // 2. Botón Borrar (Elimina la reserva de la BD)
     const btnBorrar = document.getElementById('btn-borrar-reserva');
     btnBorrar.onclick = async () => {
-        const confirmacion = confirm(`¿Estás 100% seguro de que deseas ELIMINAR la reserva ${idFormateado}? Esta acción no se puede deshacer.`);
-        
+        const confirmacion = confirm(`¿Estás 100% seguro de que deseas ELIMINAR la reserva ${idFormateado}?`);
         if (confirmacion) {
             try {
-                const response = await fetch(`http://localhost:3000/api/reservas/${reserva.id_reserva}`, {
-                    method: 'DELETE'
-                });
-                
+                const response = await fetch(`http://localhost:3000/api/reservas/${reserva.id_reserva}`, { method: 'DELETE' });
                 if (response.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('modalDetalleReserva')).hide();
-                    cargarReservasDesdeBD(); // Recarga la tabla automáticamente
-                } else {
-                    alert("Hubo un error al intentar borrar la reserva.");
+                    cargarReservasDesdeBD(); 
                 }
-            } catch (error) {
-                console.error("Error borrando:", error);
-            }
+            } catch (error) { console.error("Error borrando:", error); }
         }
     };
-    // Mostrar el modal
+    
     const modal = new bootstrap.Modal(document.getElementById('modalDetalleReserva'));
     modal.show();
 };
@@ -531,12 +592,9 @@ async function cargarBoletosDesdeBD() {
             `;
             tbody.appendChild(tr);
         });
-    } catch (error) {
-        console.error("Error cargando los boletos:", error);
-    }
+    } catch (error) { console.error("Error cargando los boletos:", error); }
 }
 
-// Lógica para abrir modal de Edición
 window.abrirModalEditarBoleto = function(id_tiquete) {
     const boleto = listaBoletosGlobal.find(b => b.id_tiquete === id_tiquete);
     if (!boleto) return;
@@ -554,9 +612,7 @@ window.abrirModalEditarBoleto = function(id_tiquete) {
     modal.show();
 };
 
-// Guardar cambios desde el modal
 document.addEventListener('DOMContentLoaded', () => {
-    // Asegurarnos de que el botón exista antes de asignarle el evento
     document.body.addEventListener('click', async (e) => {
         if (e.target && e.target.id === 'btn-guardar-boleto') {
             const id = document.getElementById('edit-bol-id').value;
@@ -577,14 +633,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     bootstrap.Modal.getInstance(document.getElementById('modalEditarBoleto')).hide();
                     cargarBoletosDesdeBD();
                 }
-            } catch (error) {
-                console.error("Error guardando boleto:", error);
-            }
+            } catch (error) { console.error("Error guardando boleto:", error); }
         }
     });
 });
 
-// Acción rápida: Mejorar a Business
 window.mejorarClaseBoleto = async function(id_tiquete) {
     const boleto = listaBoletosGlobal.find(b => b.id_tiquete === id_tiquete);
     if (boleto.clase === 'Business' || boleto.clase === 'Primera Clase') {
@@ -600,19 +653,11 @@ window.mejorarClaseBoleto = async function(id_tiquete) {
             const response = await fetch(`http://localhost:3000/api/boletos/${id_tiquete}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    clase: 'Business',
-                    num_asiento: boleto.num_asiento, // Mantiene el asiento o lo cambias luego
-                    precio_final: nuevoPrecio
-                })
+                body: JSON.stringify({ clase: 'Business', num_asiento: boleto.num_asiento, precio_final: nuevoPrecio })
             });
 
-            if (response.ok) {
-                cargarBoletosDesdeBD();
-            }
-        } catch (error) {
-            console.error("Error mejorando boleto:", error);
-        }
+            if (response.ok) { cargarBoletosDesdeBD(); }
+        } catch (error) { console.error("Error mejorando boleto:", error); }
     }
 };
 
@@ -638,24 +683,20 @@ async function cargarPaquetesDesdeBD() {
             const iconoPower = esActivo ? 'bi-power text-danger' : 'bi-check-circle text-success';
             const tituloPower = esActivo ? 'Desactivar' : 'Activar';
 
-            // Tarjeta HTML
             const tarjeta = document.createElement('div');
             tarjeta.className = 'col-12 col-md-6 col-lg-4 d-flex'; 
             
             tarjeta.innerHTML = `
                 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden card-paquete w-100 p-0 bg-white">
-                    
                     <div class="bg-gradient-orange p-4 text-center text-white d-flex flex-column justify-content-center w-100 m-0" style="min-height: 160px;">
                         <h3 class="fw-bold mb-1 text-wrap" style="word-break: break-word;">${paquete.nombre}</h3>
                         <p class="mb-0 small opacity-75">${paquete.sector_destino}</p>
                     </div>
-                    
                     <div class="card-body p-4 d-flex flex-column w-100" style="text-align: left !important;">
                         <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
                             <h6 class="fw-bold text-dark mb-0 text-start">${paquete.nombre}</h6>
                             <span class="badge ${claseBadge} small text-nowrap">${paquete.estado}</span>
                         </div>
-                        <p class="text-muted small mb-3 text-start">${paquete.duracion || 'N/A'}</p>
                         
                         <p class="text-muted small mb-4 text-start" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
                             ${paquete.descripcion}
@@ -679,20 +720,16 @@ async function cargarPaquetesDesdeBD() {
                             </div>
                         </div>
                     </div>
-                    
                 </div>
             `;
             contenedor.appendChild(tarjeta);
         });
-    } catch (error) {
-        console.error("Error cargando paquetes:", error);
-    }
+    } catch (error) { console.error("Error cargando paquetes:", error); }
 }
 
-// 1. Abrir Modal para CREAR
 window.abrirModalCrearPaquete = function() {
     document.getElementById('form-paquete').reset();
-    document.getElementById('paq-id').value = ''; // ID vacío significa "Crear"
+    document.getElementById('paq-id').value = ''; 
     
     document.getElementById('modalPaqueteTitle').textContent = 'Crear Nuevo Paquete Turístico';
     document.getElementById('btn-guardar-paquete').textContent = 'Crear Paquete';
@@ -701,7 +738,6 @@ window.abrirModalCrearPaquete = function() {
     modal.show();
 };
 
-// 2. Abrir Modal para EDITAR
 window.abrirModalEditarPaquete = function(id_paquete) {
     const pq = listaPaquetesGlobal.find(p => p.id_paquete === id_paquete);
     if (!pq) return;
@@ -709,7 +745,6 @@ window.abrirModalEditarPaquete = function(id_paquete) {
     document.getElementById('paq-id').value = pq.id_paquete;
     document.getElementById('paq-nombre').value = pq.nombre;
     document.getElementById('paq-destino').value = pq.sector_destino;
-    document.getElementById('paq-duracion').value = pq.duracion;
     document.getElementById('paq-desc').value = pq.descripcion;
     document.getElementById('paq-precio').value = parseFloat(pq.precio);
     document.getElementById('paq-estado').value = pq.estado;
@@ -721,7 +756,6 @@ window.abrirModalEditarPaquete = function(id_paquete) {
     modal.show();
 };
 
-// 3. Guardar (Decide si hace POST o PUT dependiendo de si hay ID)
 document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', async (e) => {
         if (e.target && e.target.id === 'btn-guardar-paquete') {
@@ -730,7 +764,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const datosPaquete = {
                 nombre: document.getElementById('paq-nombre').value,
                 sector_destino: document.getElementById('paq-destino').value,
-                duracion: document.getElementById('paq-duracion').value,
                 descripcion: document.getElementById('paq-desc').value,
                 precio: document.getElementById('paq-precio').value,
                 estado: document.getElementById('paq-estado').value
@@ -748,21 +781,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('modalFormPaquete')).hide();
-                    cargarPaquetesDesdeBD(); // Recarga las tarjetas
+                    cargarPaquetesDesdeBD(); 
                 }
-            } catch (error) {
-                console.error("Error guardando paquete:", error);
-            }
+            } catch (error) { console.error("Error guardando paquete:", error); }
         }
     });
 });
 
-// 4. Activar/Desactivar rápido con el botón de "Power"
 window.toggleEstadoPaquete = async function(id_paquete, estadoActual) {
     const pq = listaPaquetesGlobal.find(p => p.id_paquete === id_paquete);
     const nuevoEstado = estadoActual === 'Activo' ? 'Inactivo' : 'Activo';
     
-    // Mantenemos los demás datos intactos, solo cambiamos el estado
     const datosActualizados = { ...pq, estado: nuevoEstado };
 
     try {
@@ -775,18 +804,16 @@ window.toggleEstadoPaquete = async function(id_paquete, estadoActual) {
     } catch (error) { console.error(error); }
 };
 
-// 5. Eliminar permanentemente (Icono de Basura)
 window.eliminarPaquete = async function(id_paquete) {
-    if (confirm('¿Estás seguro de que deseas eliminar este paquete turístico? Esta acción borrará el paquete de la base de datos.')) {
+    if (confirm('¿Estás seguro de que deseas eliminar este paquete turístico?')) {
         try {
             const response = await fetch(`http://localhost:3000/api/paquetes/${id_paquete}`, { method: 'DELETE' });
             if (response.ok) cargarPaquetesDesdeBD();
         } catch (error) { console.error(error); }
     }
 };
-
 // ==============================================================
-// MÓDULO DE CLIENTES
+// MÓDULO DE CLIENTES (ACTUALIZADO)
 // ==============================================================
 
 let listaClientesGlobal = [];
@@ -809,6 +836,7 @@ async function cargarClientesDesdeBD() {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="ps-4 py-3 fw-bold text-dark">${idFormateado}</td>
+                <td class="py-3 text-dark">${cliente.identificacion || 'N/A'}</td>
                 <td class="py-3 text-dark">${cliente.nombre_completo}</td>
                 <td class="py-3 text-muted">${cliente.correo}</td>
                 <td class="py-3 text-muted">${cliente.telefono || 'N/A'}</td>
@@ -824,8 +852,29 @@ async function cargarClientesDesdeBD() {
             `;
             tbody.appendChild(tr);
         });
+
+        // ¡AQUÍ ESTÁ LA CORRECCIÓN! 
+        // Llamamos a las ciudades apenas termina de pintar la tabla de clientes
+        await cargarCiudadesParaSelect();
+
+    } catch (error) { console.error("Error cargando los clientes:", error); }
+}
+
+async function cargarCiudadesParaSelect() {
+    try {
+        const res = await fetch('http://localhost:3000/api/ubicaciones');
+        const data = await res.json();
+        
+        const selectCiudad = document.getElementById('edit-cli-id-ciudad');
+        if (!selectCiudad) return;
+        
+        selectCiudad.innerHTML = '<option value="">Seleccione una ciudad...</option>';
+        
+        data.ciudades.forEach(c => {
+            selectCiudad.innerHTML += `<option value="${c.id_ciudad}">${c.nombre}</option>`;
+        });
     } catch (error) {
-        console.error("Error cargando los clientes:", error);
+        console.error("Error cargando las ciudades para el select:", error);
     }
 }
 
@@ -835,43 +884,47 @@ window.abrirModalPerfilCliente = function(id_cliente) {
 
     const idFormateado = 'CLI' + String(cliente.id_cliente).padStart(3, '0');
     
-    // Formatear fecha (Ej. 14/1/2026)
     let fechaTexto = 'N/A';
     if (cliente.fecha_registro) {
         const fechaObj = new Date(cliente.fecha_registro);
         fechaTexto = fechaObj.toLocaleDateString('es-ES');
     }
 
-    // Llenar Modal
     document.getElementById('modalClienteTitle').textContent = `Perfil del Cliente - ${cliente.nombre_completo}`;
     document.getElementById('perfil-nombre').textContent = cliente.nombre_completo;
     document.getElementById('perfil-id').textContent = `ID de Cliente: ${idFormateado}`;
     document.getElementById('perfil-reservas').textContent = cliente.total_reservas;
     
+    document.getElementById('perfil-identificacion').textContent = cliente.identificacion || 'N/A';
     document.getElementById('perfil-email').textContent = cliente.correo;
     document.getElementById('perfil-telefono').textContent = cliente.telefono || 'N/A';
+    document.getElementById('perfil-telefono-alt').textContent = cliente.telefono_alterno || 'N/A';
     document.getElementById('perfil-ciudad').textContent = cliente.ciudad || 'N/A';
+    document.getElementById('perfil-direccion').textContent = cliente.direccion || 'N/A';
     document.getElementById('perfil-fecha').textContent = fechaTexto;
     
-    // 1. Abrir modal de Edición
+    // Abrir modal de Edición
     document.getElementById('btn-abrir-editar-cliente').onclick = () => {
-        // Ocultamos el perfil visualmente
         bootstrap.Modal.getInstance(document.getElementById('modalPerfilCliente')).hide();
         
-        // Llenamos el form
         document.getElementById('edit-cli-id').value = cliente.id_cliente;
+        document.getElementById('edit-cli-identificacion').value = cliente.identificacion || '';
         document.getElementById('edit-cli-nombres').value = cliente.nombres;
         document.getElementById('edit-cli-apellidos').value = cliente.apellidos;
         document.getElementById('edit-cli-email').value = cliente.correo;
         document.getElementById('edit-cli-telefono').value = cliente.telefono || '';
-        document.getElementById('edit-cli-ciudad').value = cliente.ciudad || '';
+        document.getElementById('edit-cli-telefono-alt').value = cliente.telefono_alterno || '';
+        document.getElementById('edit-cli-direccion').value = cliente.direccion || '';
         
-        // Abrimos el nuevo modal
+        // Magia: autoseleccionar la ciudad que el cliente ya tenía
+        const inputCiudad = document.getElementById('edit-cli-id-ciudad');
+        if(inputCiudad) inputCiudad.value = cliente.id_ciudad || '';
+        
         const modalEdit = new bootstrap.Modal(document.getElementById('modalEditarCliente'));
         modalEdit.show();
     };
 
-    // 2. Ver Historial
+    // Ver Historial
     document.getElementById('btn-ver-historial-cliente').onclick = async () => {
         bootstrap.Modal.getInstance(document.getElementById('modalPerfilCliente')).hide();
         
@@ -896,7 +949,7 @@ window.abrirModalPerfilCliente = function(id_cliente) {
             reservas.forEach(r => {
                 const idRes = 'RES' + String(r.id_reserva).padStart(3, '0');
                 const fechaObj = new Date(r.fecha_hora_reserva);
-                const badgeClass = r.estado === 'Cancelado' ? 'badge-cancelado' : (r.estado === 'Pendiente' ? 'badge-pendiente' : 'badge-confirmado');
+                const badgeClass = r.estado === 'Cancelada' ? 'badge-cancelado' : (r.estado === 'Reservada' ? 'badge-pendiente' : 'badge-confirmado');
                 
                 tbody.innerHTML += `
                     <tr>
@@ -908,25 +961,32 @@ window.abrirModalPerfilCliente = function(id_cliente) {
                     </tr>
                 `;
             });
+            // (Eliminamos la llamada errónea de cargarCiudadesParaSelect() que estaba aquí)
         } catch (error) {
             tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger">Error al cargar datos.</td></tr>';
         }
     };
+    
     const modal = new bootstrap.Modal(document.getElementById('modalPerfilCliente'));
     modal.show();
 };
 
-// Guardar edición del cliente
 document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', async (e) => {
         if (e.target && e.target.id === 'btn-guardar-cliente') {
             const id = document.getElementById('edit-cli-id').value;
+            const inputCiudad = document.getElementById('edit-cli-id-ciudad');
+            const inputDireccion = document.getElementById('edit-cli-direccion');
+
             const datosActualizados = {
+                identificacion: document.getElementById('edit-cli-identificacion').value,
                 nombres: document.getElementById('edit-cli-nombres').value,
                 apellidos: document.getElementById('edit-cli-apellidos').value,
                 correo: document.getElementById('edit-cli-email').value,
-                telefono: document.getElementById('edit-cli-telefono').value,
-                ciudad: document.getElementById('edit-cli-ciudad').value
+                telefono_principal: document.getElementById('edit-cli-telefono').value,
+                telefono_alterno: document.getElementById('edit-cli-telefono-alt').value,
+                id_ciudad: inputCiudad && inputCiudad.value !== "" ? inputCiudad.value : null,
+                direccion: inputDireccion ? inputDireccion.value : null
             };
 
             try {
@@ -938,16 +998,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide();
-                    cargarClientesDesdeBD(); // Refresca la tabla
+                    cargarClientesDesdeBD(); 
                 }
-            } catch (error) {
-                console.error("Error guardando cliente:", error);
-            }
+            } catch (error) { console.error("Error guardando cliente:", error); }
         }
     });
 });
+
 // ==============================================================
-// MÓDULO DE USUARIOS Y ROLES
+// MÓDULO DE USUARIOS Y ROLES (ACTUALIZADO SIN TABLA ROLES)
 // ==============================================================
 
 let listaUsuariosGlobal = [];
@@ -962,16 +1021,13 @@ async function cargarUsuariosDesdeBD() {
         if (!tbody) return;
         tbody.innerHTML = '';
 
-        // Contadores para las tarjetas superiores
         let cAdmins = 0, cAgentes = 0, cClientes = 0;
 
         usuarios.forEach(user => {
-            // Conteo
-            if (user.tipo_rol === 'Administrador') cAdmins++;
-            else if (user.tipo_rol === 'Agente') cAgentes++;
+            if (user.tipo_rol === 'Súper Administrador') cAdmins++;
+            else if (user.tipo_rol === 'Agente de Aerolínea') cAgentes++;
             else if (user.tipo_rol === 'Cliente') cClientes++;
 
-            // Configuración visual
             const numId = `#${user.id_usuario}`;
             const clienteAsc = user.id_cliente ? `<a href="#" class="text-orange-link">CLI${String(user.id_cliente).padStart(3, '0')}</a>` : '<span class="text-muted">—</span>';
             const estadoBadge = user.estado === 'Activo' ? '<span class="badge badge-activo">Activo</span>' : '<span class="badge badge-inactivo">Inactivo</span>';
@@ -980,11 +1036,10 @@ async function cargarUsuariosDesdeBD() {
             let rolHtml = '';
             let iconHtml = '';
             
-            // Añadimos 'text-nowrap' directamente al badge para blindarlo
-            if (user.tipo_rol === 'Administrador') {
+            if (user.tipo_rol === 'Súper Administrador') {
                 rolHtml = `<span class="badge-rol-admin text-nowrap"><i class="bi bi-shield me-1"></i> Administrador</span>`;
-                iconHtml = `<div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;"><i class="bi bi-person-gear"></i></div>`;
-            } else if (user.tipo_rol === 'Agente') {
+                iconHtml = `<div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;"><i class="bi bi-shield-lock"></i></div>`;
+            } else if (user.tipo_rol === 'Agente de Aerolínea') {
                 rolHtml = `<span class="badge-rol-agente text-nowrap"><i class="bi bi-person-gear me-1"></i> Agente</span>`;
                 iconHtml = `<div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;"><i class="bi bi-person-gear"></i></div>`;
             } else {
@@ -1013,57 +1068,48 @@ async function cargarUsuariosDesdeBD() {
             tbody.appendChild(tr);
         });
 
-        // Actualizar contadores en la vista
         document.getElementById('count-admins').textContent = cAdmins;
         document.getElementById('count-agentes').textContent = cAgentes;
         document.getElementById('count-clientes').textContent = cClientes;
 
-    } catch (error) {
-        console.error("Error cargando usuarios:", error);
-    }
+    } catch (error) { console.error("Error cargando usuarios:", error); }
 }
 
-// 1. Abrir modal para CREAR (Limpia todo)
 window.abrirModalUsuario = function() {
     document.getElementById('form-usuario').reset();
-    document.getElementById('user-pass').parentElement.style.display = 'block'; // Mostrar campo contraseña
+    document.getElementById('user-pass').parentElement.style.display = 'block'; 
     
     const modalTitle = document.querySelector('#modalCrearUsuario .modal-header h5');
     if (modalTitle) modalTitle.textContent = 'Crear Nuevo Usuario';
     
     const btnGuardar = document.getElementById('btn-guardar-usuario');
     btnGuardar.textContent = 'Crear Usuario';
-    delete btnGuardar.dataset.editId; // Asegurar que no quede ID de edición viejo
+    delete btnGuardar.dataset.editId; 
     
     new bootstrap.Modal(document.getElementById('modalCrearUsuario')).show();
 };
 
-// 2. Abrir modal para EDITAR (Llena campos y adapta diseño)
 window.abrirModalEditarUsuario = function(id_usuario) {
     const user = listaUsuariosGlobal.find(u => u.id_usuario === id_usuario);
     if (!user) return;
 
-    // Llenar formulario
     document.getElementById('user-username').value = user.username;
     document.getElementById('user-email').value = user.email || '';
     document.getElementById('user-rol').value = user.tipo_rol;
     document.getElementById('user-cliente-id').value = user.id_cliente || '';
     
-    // Ocultar campo de contraseña
     document.getElementById('user-pass').parentElement.style.display = 'none';
 
-    // Adaptar textos del modal
     const modalTitle = document.querySelector('#modalCrearUsuario .modal-header h5');
     if (modalTitle) modalTitle.textContent = 'Editar Usuario';
     
     const btnGuardar = document.getElementById('btn-guardar-usuario');
     btnGuardar.textContent = 'Guardar Cambios';
-    btnGuardar.dataset.editId = id_usuario; // Guardamos el ID temporalmente para saber a quién editamos
+    btnGuardar.dataset.editId = id_usuario; 
 
     new bootstrap.Modal(document.getElementById('modalCrearUsuario')).show();
 };
 
-// 3. Cambiar estado (Activar/Desactivar)
 window.cambiarEstadoUsuario = async function(id_usuario, estadoActual) {
     const nuevoEstado = estadoActual === 'Activo' ? 'Inactivo' : 'Activo';
     if(confirm(`¿Deseas ${nuevoEstado === 'Inactivo' ? 'desactivar' : 'activar'} este usuario?`)) {
@@ -1078,12 +1124,10 @@ window.cambiarEstadoUsuario = async function(id_usuario, estadoActual) {
     }
 };
 
-// 4. Guardar (Detecta automáticamente si es Crear o Editar)
 document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', async (e) => {
         if (e.target && e.target.id === 'btn-guardar-usuario') {
-            
-            const editId = e.target.dataset.editId; // ¿Hay un ID guardado en el botón?
+            const editId = e.target.dataset.editId; 
             
             const datosUsuario = {
                 username: document.getElementById('user-username').value,
@@ -1095,7 +1139,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let url = 'http://localhost:3000/api/usuarios';
             let method = 'POST';
 
-            // Si hay editId, hacemos UPDATE. Si no, hacemos INSERT y agregamos contraseña.
             if (editId) {
                 url = `http://localhost:3000/api/usuarios/${editId}`;
                 method = 'PUT';
@@ -1112,14 +1155,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('modalCrearUsuario')).hide();
-                    delete e.target.dataset.editId; // Limpiamos el ID del botón
+                    delete e.target.dataset.editId; 
                     cargarUsuariosDesdeBD();
                 } else {
                     alert("Error: Verifica que los datos sean correctos y el username no esté repetido.");
                 }
-            } catch (error) {
-                console.error("Error procesando usuario:", error);
-            }
+            } catch (error) { console.error("Error procesando usuario:", error); }
         }
     });
 });
@@ -1140,9 +1181,7 @@ async function cargarUbicacionesDesdeBD() {
         globalCiudades = data.ciudades;
 
         renderizarArbolUbicaciones();
-    } catch (error) {
-        console.error("Error cargando ubicaciones:", error);
-    }
+    } catch (error) { console.error("Error cargando ubicaciones:", error); }
 }
 
 function renderizarArbolUbicaciones() {
@@ -1151,13 +1190,11 @@ function renderizarArbolUbicaciones() {
     contenedor.innerHTML = '';
 
     globalPaises.forEach(pais => {
-        // Filtrar hijos
         const deptosDelPais = globalDeptos.filter(d => d.id_pais === pais.id_pais);
         const totalCiudadesPais = deptosDelPais.reduce((acc, depto) => {
             return acc + globalCiudades.filter(c => c.id_departamento === depto.id_departamento).length;
         }, 0);
 
-        // 1. Crear Fila del País
         const divPais = document.createElement('div');
         divPais.innerHTML = `
             <div class="ubi-item d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapsePais${pais.id_pais}" onclick="toggleChevron(this)">
@@ -1174,7 +1211,6 @@ function renderizarArbolUbicaciones() {
                     <button class="btn-texto-accion" onclick="event.stopPropagation(); eliminarPais(${pais.id_pais})"><i class="bi bi-trash fs-5 text-muted text-danger"></i></button>
                 </div>
             </div>
-            
             <div class="collapse" id="collapsePais${pais.id_pais}">
                 <div class="deptos-wrapper" id="wrapper-pais-${pais.id_pais}"></div>
             </div>
@@ -1183,7 +1219,6 @@ function renderizarArbolUbicaciones() {
 
         const wrapperDeptos = document.getElementById(`wrapper-pais-${pais.id_pais}`);
 
-        // 2. Crear Filas de Departamentos
         deptosDelPais.forEach(depto => {
             const ciudadesDelDepto = globalCiudades.filter(c => c.id_departamento === depto.id_departamento);
             
@@ -1203,7 +1238,6 @@ function renderizarArbolUbicaciones() {
                         <button class="btn-texto-accion" onclick="event.stopPropagation(); eliminarDepto(${depto.id_departamento})"><i class="bi bi-trash fs-5 text-muted text-danger"></i></button>
                     </div>
                 </div>
-                
                 <div class="collapse" id="collapseDepto${depto.id_departamento}">
                     <div class="ciudades-wrapper" id="wrapper-depto-${depto.id_departamento}"></div>
                 </div>
@@ -1212,7 +1246,6 @@ function renderizarArbolUbicaciones() {
 
             const wrapperCiudades = document.getElementById(`wrapper-depto-${depto.id_departamento}`);
 
-            // 3. Crear Filas de Ciudades
             ciudadesDelDepto.forEach(ciudad => {
                 const divCiudad = document.createElement('div');
                 divCiudad.className = 'ubi-item ciudad-container d-flex justify-content-between align-items-center';
@@ -1229,7 +1262,6 @@ function renderizarArbolUbicaciones() {
                 wrapperCiudades.appendChild(divCiudad);
             });
 
-            // Botón "Agregar Ciudad" al final del departamento
             wrapperCiudades.innerHTML += `
                 <div class="ciudad-container py-3 d-flex justify-content-center">
                     <button class="btn-add-nested" onclick="abrirModalCiudad(${pais.id_pais}, ${depto.id_departamento})">
@@ -1239,7 +1271,6 @@ function renderizarArbolUbicaciones() {
             `;
         });
 
-        // Botón "Agregar Departamento" al final del país
         wrapperDeptos.innerHTML += `
             <div class="depto-container py-3 ms-4">
                 <button class="btn-add-nested" onclick="abrirModalDepto(${pais.id_pais})">
@@ -1250,25 +1281,16 @@ function renderizarArbolUbicaciones() {
     });
 }
 
-// Animación de la flechita
 window.toggleChevron = function(elemento) {
     const icon = elemento.querySelector('.ubi-chevron');
     if(icon) icon.classList.toggle('open');
 };
 
-// ==========================================
-// LÓGICA DE LOS MODALES Y GUARDADO
-// ==========================================
-
-// --- FUNCIONES PARA ABRIR LOS MODALES (NO BORRAR) ---
-
-// 1. Abrir Modal País
 window.abrirModalPais = function() {
     document.getElementById('form-pais').reset();
     new bootstrap.Modal(document.getElementById('modalPais')).show();
 };
 
-// 2. Abrir Modal Departamento
 window.abrirModalDepto = function(id_pais_preseleccionado = null) {
     document.getElementById('form-depto').reset();
     const selectPais = document.getElementById('depto-pais');
@@ -1279,11 +1301,9 @@ window.abrirModalDepto = function(id_pais_preseleccionado = null) {
     });
 
     if(id_pais_preseleccionado) selectPais.value = id_pais_preseleccionado;
-    
     new bootstrap.Modal(document.getElementById('modalDepto')).show();
 };
 
-// 3. Abrir Modal Ciudad (Con Selects en Cadena)
 window.abrirModalCiudad = function(id_pais_pre = null, id_depto_pre = null) {
     document.getElementById('form-ciudad').reset();
     const selPais = document.getElementById('ciudad-pais');
@@ -1292,7 +1312,6 @@ window.abrirModalCiudad = function(id_pais_pre = null, id_depto_pre = null) {
     selPais.innerHTML = '<option value="">Seleccionar país</option>';
     globalPaises.forEach(p => selPais.innerHTML += `<option value="${p.id_pais}">${p.nombre}</option>`);
 
-    // Evento: Cuando cambia el país, se filtran los departamentos
     selPais.onchange = () => {
         selDepto.innerHTML = '<option value="">Seleccionar departamento</option>';
         const deptosFiltrados = globalDeptos.filter(d => d.id_pais == selPais.value);
@@ -1301,7 +1320,7 @@ window.abrirModalCiudad = function(id_pais_pre = null, id_depto_pre = null) {
 
     if(id_pais_pre) {
         selPais.value = id_pais_pre;
-        selPais.dispatchEvent(new Event('change')); // Forzar actualización del segundo select
+        selPais.dispatchEvent(new Event('change'));
         if(id_depto_pre) selDepto.value = id_depto_pre;
     } else {
         selDepto.innerHTML = '<option value="">Primero selecciona un país</option>';
@@ -1310,75 +1329,41 @@ window.abrirModalCiudad = function(id_pais_pre = null, id_depto_pre = null) {
     new bootstrap.Modal(document.getElementById('modalCiudad')).show();
 };
 
-// ==========================================
-// EVENT DELEGATION: GUARDADO DE UBICACIONES
-// ==========================================
-
 document.body.addEventListener('click', async (e) => {
-    
-    // 1. Guardar País
     if (e.target && e.target.id === 'btn-guardar-pais') {
         if (e.target.textContent === 'Guardar Cambios') return; 
         
-        const data = {
-            nombre: document.getElementById('pais-nombre').value,
-            codigo: document.getElementById('pais-codigo').value
-        };
+        const data = { nombre: document.getElementById('pais-nombre').value, codigo: document.getElementById('pais-codigo').value };
         try {
-            await fetch('http://localhost:3000/api/paises', { 
-                method: 'POST', 
-                headers:{'Content-Type':'application/json'}, 
-                body: JSON.stringify(data)
-            });
+            await fetch('http://localhost:3000/api/paises', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
             bootstrap.Modal.getInstance(document.getElementById('modalPais')).hide();
             cargarUbicacionesDesdeBD();
         } catch (error) { console.error("Error guardando país:", error); }
     }
 
-    // 2. Guardar Departamento
     if (e.target && e.target.id === 'btn-guardar-depto') {
         if (e.target.textContent === 'Guardar Cambios') return;
         
-        const data = {
-            id_pais: document.getElementById('depto-pais').value,
-            nombre: document.getElementById('depto-nombre').value
-        };
+        const data = { id_pais: document.getElementById('depto-pais').value, nombre: document.getElementById('depto-nombre').value };
         try {
-            await fetch('http://localhost:3000/api/departamentos', { 
-                method: 'POST', 
-                headers:{'Content-Type':'application/json'}, 
-                body: JSON.stringify(data)
-            });
+            await fetch('http://localhost:3000/api/departamentos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
             bootstrap.Modal.getInstance(document.getElementById('modalDepto')).hide();
             cargarUbicacionesDesdeBD();
         } catch (error) { console.error("Error guardando depto:", error); }
     }
 
-    // 3. Guardar Ciudad
     if (e.target && e.target.id === 'btn-guardar-ciudad') {
         if (e.target.textContent === 'Guardar Cambios') return;
         
-        const data = {
-            id_departamento: document.getElementById('ciudad-depto').value,
-            nombre: document.getElementById('ciudad-nombre').value
-        };
+        const data = { id_departamento: document.getElementById('ciudad-depto').value, nombre: document.getElementById('ciudad-nombre').value };
         try {
-            await fetch('http://localhost:3000/api/ciudades', { 
-                method: 'POST', 
-                headers:{'Content-Type':'application/json'}, 
-                body: JSON.stringify(data)
-            });
+            await fetch('http://localhost:3000/api/ciudades', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
             bootstrap.Modal.getInstance(document.getElementById('modalCiudad')).hide();
             cargarUbicacionesDesdeBD();
         } catch (error) { console.error("Error guardando ciudad:", error); }
     }
 });
 
-// ==========================================
-// FUNCIONES INTERACTIVAS DE EDICIÓN Y BORRADO
-// ==========================================
-
-// --- PAÍSES ---
 window.abrirModalEditarPais = function(id) {
     const p = globalPaises.find(item => item.id_pais === id);
     if (!p) return;
@@ -1403,12 +1388,11 @@ window.eliminarPais = async function(id) {
     }
 };
 
-// --- DEPARTAMENTOS ---
 window.abrirModalEditarDepto = function(id) {
     const d = globalDeptos.find(item => item.id_departamento === id);
     if (!d) return;
     
-    abrirModalDepto(d.id_pais); // Inicializa y llena el select de países
+    abrirModalDepto(d.id_pais); 
     document.getElementById('depto-nombre').value = d.nombre;
     
     const btn = document.getElementById('btn-guardar-depto');
@@ -1428,14 +1412,11 @@ window.eliminarDepto = async function(id) {
     }
 };
 
-// --- CIUDADES ---
 window.abrirModalEditarCiudad = function(id) {
     const c = globalCiudades.find(item => item.id_ciudad === id);
     if (!c) return;
     
-    // Encontrar qué departamento y país le pertenecen para pre-cargar los selects anidados
     const depto = globalDeptos.find(d => d.id_departamento === c.id_departamento);
-    
     abrirModalCiudad(depto.id_pais, c.id_departamento);
     document.getElementById('ciudad-nombre').value = c.nombre;
     
@@ -1455,3 +1436,87 @@ window.eliminarCiudad = async function(id) {
         cargarUbicacionesDesdeBD();
     }
 };
+
+// ==============================================================
+// MÓDULO DE REPORTES Y ANÁLISIS 
+// ==============================================================
+async function cargarReportesDesdeBD() {
+    try {
+        // 1. Cargar Clientes Frecuentes
+        const resFrec = await fetch('http://localhost:3000/api/reportes/clientes-frecuentes');
+        const dataFrec = await resFrec.json();
+        const tbodyFrec = document.getElementById('rep-frecuentes-body');
+        tbodyFrec.innerHTML = '';
+        dataFrec.forEach(c => {
+            tbodyFrec.innerHTML += `
+                <tr>
+                    <td class="py-3">${c.identificacion || 'N/A'}</td>
+                    <td class="py-3 fw-medium text-dark">${c.cliente}</td>
+                    <td class="py-3 text-muted">${c.correo}</td>
+                    <td class="py-3 text-center"><span class="badge bg-primary rounded-pill px-3">${c.total_reservas}</span></td>
+                    <td class="py-3 text-end fw-bold text-success">$${parseFloat(c.dinero_invertido).toLocaleString('es-ES')}</td>
+                </tr>
+            `;
+        });
+
+        // 2. Cargar Cobertura Geográfica
+        const resCob = await fetch('http://localhost:3000/api/reportes/cobertura');
+        const dataCob = await resCob.json();
+        const tbodyCob = document.getElementById('rep-cobertura-body');
+        tbodyCob.innerHTML = '';
+        dataCob.forEach(v => {
+            const badgeEstado = v.estado_vuelo === 'Cancelado' ? 'badge-cancelado' : 'badge-confirmado';
+            tbodyCob.innerHTML += `
+                <tr>
+                    <td class="py-3 fw-bold text-dark"><i class="bi bi-globe-americas me-2 text-muted"></i>${v.pais}</td>
+                    <td class="py-3">${v.departamento}</td>
+                    <td class="py-3 fw-medium">${v.ciudad_destino}</td>
+                    <td class="py-3 text-orange fw-bold">${v.cod_vuelo}</td>
+                    <td class="py-3">${v.ciudad_origen}</td>
+                    <td class="py-3"><span class="badge ${badgeEstado}">${v.estado_vuelo}</span></td>
+                </tr>
+            `;
+        });
+
+        // 3. Cargar Cancelaciones
+        const resCanc = await fetch('http://localhost:3000/api/reportes/cancelaciones');
+        const dataCanc = await resCanc.json();
+        const tbodyCanc = document.getElementById('rep-cancelaciones-body');
+        tbodyCanc.innerHTML = '';
+        dataCanc.forEach(r => {
+            const fecha = new Date(r.fecha_cancelacion).toLocaleString('es-ES');
+            tbodyCanc.innerHTML += `
+                <tr>
+                    <td class="py-3 fw-bold text-dark">RES${String(r.id_reserva).padStart(3, '0')}</td>
+                    <td class="py-3 text-orange fw-bold">${r.cod_vuelo}</td>
+                    <td class="py-3">${r.cliente}</td>
+                    <td class="py-3 text-muted">${fecha}</td>
+                    <td class="py-3 text-end fw-bold text-danger">-$${parseFloat(r.valor_total).toLocaleString('es-ES')}</td>
+                    <td class="py-3"><span class="text-danger small fw-medium"><i class="bi bi-exclamation-circle me-1"></i>${r.causa_estimada}</span></td>
+                </tr>
+            `;
+        });
+
+        // 4. Cargar Métrica de Eficiencia
+        const resEf = await fetch('http://localhost:3000/api/reportes/eficiencia');
+        const dataEf = await resEf.json();
+        document.getElementById('rep-promedio-global').innerHTML = `${dataEf.promedioGlobal} <span class="fs-5 fw-medium text-muted">minutos</span>`;
+        
+        const tbodyEf = document.getElementById('rep-eficiencia-body');
+        tbodyEf.innerHTML = '';
+        dataEf.detalle.forEach(r => {
+            tbodyEf.innerHTML += `
+                <tr>
+                    <td class="py-3 fw-bold text-dark">RES${String(r.id_reserva).padStart(3, '0')}</td>
+                    <td class="py-3">${r.cliente}</td>
+                    <td class="py-3 text-muted">${new Date(r.momento_reserva).toLocaleString('es-ES')}</td>
+                    <td class="py-3 text-muted">${new Date(r.momento_confirmacion).toLocaleString('es-ES')}</td>
+                    <td class="py-3 text-center fw-bold text-success">${r.minutos_transcurridos} min</td>
+                </tr>
+            `;
+        });
+
+    } catch (error) {
+        console.error("Error al cargar los reportes:", error);
+    }
+}
