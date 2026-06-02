@@ -1,0 +1,109 @@
+<div class="mb-4">
+    <h2 class="fw-bold text-dark mb-1">Reportes y Análisis Operativo</h2>
+    <p class="text-muted">Módulo avanzado de inteligencia de negocios para SkyDreams</p>
+</div>
+
+<div class="bg-white rounded-4 shadow-sm border-0 overflow-hidden p-4">
+    <ul class="nav nav-pills mb-4 gap-2 border-bottom pb-3" id="reportesTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 fw-medium" id="frecuentes-tab" data-bs-toggle="pill" data-bs-target="#frecuentes" type="button" role="tab">Clientes Frecuentes</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-medium" id="cobertura-tab" data-bs-toggle="pill" data-bs-target="#cobertura" type="button" role="tab">Cobertura Geográfica</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-medium text-danger" id="cancelaciones-tab" data-bs-toggle="pill" data-bs-target="#cancelaciones" type="button" role="tab">Análisis de Cancelaciones</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-medium text-success" id="eficiencia-tab" data-bs-toggle="pill" data-bs-target="#eficiencia" type="button" role="tab">Métricas de Eficiencia</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="reportesTabsContent">
+        
+        <div class="tab-pane fade show active" id="frecuentes" role="tabpanel">
+            <h5 class="fw-bold mb-3">Top 10 Clientes Frecuentes</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light text-muted small fw-semibold text-uppercase">
+                        <tr>
+                            <th class="py-3">Identificación</th>
+                            <th class="py-3">Nombre del Cliente</th>
+                            <th class="py-3">Correo Electrónico</th>
+                            <th class="py-3 text-center">Total Reservas Confirmadas</th>
+                            <th class="py-3 text-end">Dinero Invertido</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rep-frecuentes-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="cobertura" role="tabpanel">
+            <h5 class="fw-bold mb-3">Listado de Vuelos por Jerarquía de Destino</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light text-muted small fw-semibold text-uppercase">
+                        <tr>
+                            <th class="py-3">País Destino</th>
+                            <th class="py-3">Departamento</th>
+                            <th class="py-3">Ciudad Destino</th>
+                            <th class="py-3">Vuelo</th>
+                            <th class="py-3">Origen</th>
+                            <th class="py-3">Estado Operativo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rep-cobertura-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="cancelaciones" role="tabpanel">
+            <h5 class="fw-bold mb-3">Registro Histórico de Reservas Canceladas</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light text-muted small fw-semibold text-uppercase">
+                        <tr>
+                            <th class="py-3">ID Reserva</th>
+                            <th class="py-3">Vuelo</th>
+                            <th class="py-3">Cliente</th>
+                            <th class="py-3">Fecha de Cancelación</th>
+                            <th class="py-3 text-end">Pérdida Económica</th>
+                            <th class="py-3">Causa Registrada</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rep-cancelaciones-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="eficiencia" role="tabpanel">
+            <div class="d-flex align-items-center gap-4 mb-4 bg-success bg-opacity-10 p-4 rounded-4">
+                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <i class="bi bi-stopwatch fs-2"></i>
+                </div>
+                <div>
+                    <h6 class="text-success fw-bold mb-1">Tiempo Promedio Global (Reserva a Confirmación)</h6>
+                    <h2 class="fw-bold mb-0 text-dark" id="rep-promedio-global">0.00 <span class="fs-5 fw-medium text-muted">minutos</span></h2>
+                </div>
+            </div>
+            
+            <h5 class="fw-bold mb-3">Detalle Operativo por Reserva</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light text-muted small fw-semibold text-uppercase">
+                        <tr>
+                            <th class="py-3">ID Reserva</th>
+                            <th class="py-3">Cliente</th>
+                            <th class="py-3">Hora de Reserva Original</th>
+                            <th class="py-3">Hora de Confirmación Real</th>
+                            <th class="py-3 text-center">Minutos Transcurridos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rep-eficiencia-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
